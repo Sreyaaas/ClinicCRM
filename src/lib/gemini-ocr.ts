@@ -180,32 +180,55 @@ export async function extractPrescriptionWithGemini(params: {
     throw new Error('GEMINI_API_KEY is not configured. Add GEMINI_API_KEY to your .env file.');
   }
 
-  const model = params.modelName || process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+  const model = params.modelName || process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
   const mimeType = params.mimeType || 'image/jpeg';
 
   const ai = new GoogleGenAI({ apiKey });
 
-  const response = await ai.interactions.create({
-    model,
-    input: [
-      {
-        type: 'text',
-        text: OCR_SYSTEM_PROMPT,
+  let text = '';
+  try {
+    const response = await ai.models.generateContent({
+      model,
+      contents: [
+        OCR_SYSTEM_PROMPT,
+        {
+          inlineData: {
+            mimeType,
+            data: params.imageBase64,
+          },
+        },
+      ],
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: PRESCRIPTION_EXTRACTION_SCHEMA,
       },
-      {
-        type: 'image',
-        data: params.imageBase64,
-        mime_type: mimeType,
-      },
-    ],
-    response_format: {
-      type: 'text',
-      mime_type: 'application/json',
-      schema: PRESCRIPTION_EXTRACTION_SCHEMA,
-    },
-  });
+    });
+    text = response.text?.trim() || '';
+  } catch (err: unknown) {
+    // If 503 or model busy on gemini-3.8-flash, seamlessly fallback to gemini-3.5-flash-lite
+    if (model !== 'gemini-3.5-flash-lite') {
+      const fallback = await ai.models.generateContent({
+        model: 'gemini-3.5-flash-lite',
+        contents: [
+          OCR_SYSTEM_PROMPT,
+          {
+            inlineData: {
+              mimeType,
+              data: params.imageBase64,
+            },
+          },
+        ],
+        config: {
+          responseMimeType: 'application/json',
+          responseSchema: PRESCRIPTION_EXTRACTION_SCHEMA,
+        },
+      });
+      text = fallback.text?.trim() || '';
+    } else {
+      throw err;
+    }
+  }
 
-  const text = response.output_text?.trim() || '';
   if (!text) {
     throw new Error('Gemini returned an empty response. Please check image clarity.');
   }
