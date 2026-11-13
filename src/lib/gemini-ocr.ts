@@ -211,51 +211,64 @@ export async function extractPrescriptionWithGemini(params: {
   }
 
   // Parse JSON output
-  let parsed: any;
+  let parsed: Record<string, unknown>;
   try {
-    parsed = JSON.parse(text);
+    parsed = JSON.parse(text) as Record<string, unknown>;
   } catch {
     // Fallback: strip code blocks if present
     const cleanText = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
-    parsed = JSON.parse(cleanText);
+    parsed = JSON.parse(cleanText) as Record<string, unknown>;
   }
 
   // Normalize prescriptions
-  const prescriptions: ExtractedPrescriptionItem[] = Array.isArray(parsed.prescriptions)
-    ? parsed.prescriptions.map((p: any) => ({
-        medicineName: String(p.medicineName || '').trim(),
-        dosage: normalizeDosage(p.dosage),
-        timing: normalizeTiming(p.timing),
-        durationDays: typeof p.durationDays === 'number' && p.durationDays > 0 ? p.durationDays : 5,
-        instructions: p.instructions ? String(p.instructions).trim() : null,
-      }))
+  const rawPrescriptions = Array.isArray(parsed.prescriptions)
+    ? (parsed.prescriptions as Array<Record<string, unknown>>)
     : [];
+  const prescriptions: ExtractedPrescriptionItem[] = rawPrescriptions.map((p) => ({
+    medicineName: String(p.medicineName || '').trim(),
+    dosage: normalizeDosage(typeof p.dosage === 'string' ? p.dosage : null),
+    timing: normalizeTiming(typeof p.timing === 'string' ? p.timing : null),
+    durationDays: typeof p.durationDays === 'number' && p.durationDays > 0 ? p.durationDays : 5,
+    instructions: p.instructions ? String(p.instructions).trim() : null,
+  }));
+
+  const rawPatient = (parsed.patient && typeof parsed.patient === 'object'
+    ? parsed.patient
+    : null) as Record<string, unknown> | null;
+  const rawVisit = (parsed.visit && typeof parsed.visit === 'object'
+    ? parsed.visit
+    : null) as Record<string, unknown> | null;
+  const rawVitals = (rawVisit?.vitals && typeof rawVisit.vitals === 'object'
+    ? rawVisit.vitals
+    : null) as Record<string, unknown> | null;
 
   return {
-    patient: parsed.patient
+    patient: rawPatient
       ? {
-          name: parsed.patient.name ? String(parsed.patient.name).trim() : null,
-          ageYears: typeof parsed.patient.ageYears === 'number' ? parsed.patient.ageYears : null,
-          gender: ['MALE', 'FEMALE', 'OTHER'].includes(parsed.patient.gender) ? parsed.patient.gender : null,
-          phone: parsed.patient.phone ? String(parsed.patient.phone).replace(/\D/g, '') : null,
-          place: parsed.patient.place ? String(parsed.patient.place).trim() : null,
+          name: rawPatient.name ? String(rawPatient.name).trim() : null,
+          ageYears: typeof rawPatient.ageYears === 'number' ? rawPatient.ageYears : null,
+          gender: ['MALE', 'FEMALE', 'OTHER'].includes(String(rawPatient.gender))
+            ? (rawPatient.gender as 'MALE' | 'FEMALE' | 'OTHER')
+            : null,
+          phone: rawPatient.phone ? String(rawPatient.phone).replace(/\D/g, '') : null,
+          place: rawPatient.place ? String(rawPatient.place).trim() : null,
         }
       : null,
     visit: {
-      chiefComplaint: parsed.visit?.chiefComplaint ? String(parsed.visit.chiefComplaint).trim() : null,
-      vitals: parsed.visit?.vitals
+      chiefComplaint: rawVisit?.chiefComplaint ? String(rawVisit.chiefComplaint).trim() : null,
+      vitals: rawVitals
         ? {
-            bp: parsed.visit.vitals.bp ? String(parsed.visit.vitals.bp).trim() : null,
-            temp: parsed.visit.vitals.temp ? String(parsed.visit.vitals.temp).trim() : null,
-            pulse: parsed.visit.vitals.pulse ? String(parsed.visit.vitals.pulse).trim() : null,
-            weight: parsed.visit.vitals.weight ? String(parsed.visit.vitals.weight).trim() : null,
-            spo2: parsed.visit.vitals.spo2 ? String(parsed.visit.vitals.spo2).trim() : null,
+            bp: rawVitals.bp ? String(rawVitals.bp).trim() : null,
+            temp: rawVitals.temp ? String(rawVitals.temp).trim() : null,
+            pulse: rawVitals.pulse ? String(rawVitals.pulse).trim() : null,
+            weight: rawVitals.weight ? String(rawVitals.weight).trim() : null,
+            spo2: rawVitals.spo2 ? String(rawVitals.spo2).trim() : null,
           }
         : null,
-      diagnosis: parsed.visit?.diagnosis ? String(parsed.visit.diagnosis).trim() : null,
-      clinicalNotes: parsed.visit?.clinicalNotes ? String(parsed.visit.clinicalNotes).trim() : null,
-      followUpDays: typeof parsed.visit?.followUpDays === 'number' ? parsed.visit.followUpDays : null,
-      followUpReason: parsed.visit?.followUpReason ? String(parsed.visit.followUpReason).trim() : null,
+      diagnosis: rawVisit?.diagnosis ? String(rawVisit.diagnosis).trim() : null,
+      clinicalNotes: rawVisit?.clinicalNotes ? String(rawVisit.clinicalNotes).trim() : null,
+      followUpDays: typeof rawVisit?.followUpDays === 'number' ? rawVisit.followUpDays : null,
+      followUpReason: rawVisit?.followUpReason ? String(rawVisit.followUpReason).trim() : null,
     },
     prescriptions,
     rawSummary: parsed.rawSummary ? String(parsed.rawSummary).trim() : null,

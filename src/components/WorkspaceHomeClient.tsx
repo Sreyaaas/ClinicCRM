@@ -173,6 +173,68 @@ export function WorkspaceHomeClient({
   const [action, setAction] = useState<QuickAction>(initialAction);
   const [picked, setPicked] = useState<PatientListItem | null>(null);
   const [newFromPicker, setNewFromPicker] = useState<string | null>(null);
+  const [ocrModalOpen, setOcrModalOpen] = useState(false);
+
+  async function handleOcrFromHome(data: PrescriptionOcrData) {
+    setOcrModalOpen(false);
+    const pInfo = data.patient;
+    const phone = pInfo?.phone?.replace(/\D/g, '').slice(-10);
+    if (phone && phone.length === 10) {
+      const res = await apiJson<{ patients: Array<{ id: string; name: string; phone: string | null }> }>(
+        `/api/patients?search=${encodeURIComponent(phone)}`
+      );
+      if (res.ok && res.data.patients.length > 0) {
+        const match = res.data.patients[0];
+        try {
+          sessionStorage.setItem('clinic_crm_pending_ocr', JSON.stringify(data));
+        } catch {
+          // ignore
+        }
+        toast(`Matched ${match.name} (${phone}). Opening consultation…`);
+        router.push(`/app/patients/${match.id}`);
+        return;
+      }
+    }
+    if (pInfo?.name) {
+      const resName = await apiJson<{ patients: Array<{ id: string; name: string; phone: string | null }> }>(
+        `/api/patients?search=${encodeURIComponent(pInfo.name)}`
+      );
+      if (resName.ok && resName.data.patients.length === 1) {
+        const match = resName.data.patients[0];
+        try {
+          sessionStorage.setItem('clinic_crm_pending_ocr', JSON.stringify(data));
+        } catch {
+          // ignore
+        }
+        toast(`Matched ${match.name}. Opening consultation…`);
+        router.push(`/app/patients/${match.id}`);
+        return;
+      }
+    }
+    // Register as new patient directly
+    const createRes = await apiJson<{ patient: { id: string; name: string } }>('/api/patients', {
+      method: 'POST',
+      body: {
+        name: pInfo?.name || 'Prescription Patient',
+        phone: pInfo?.phone || undefined,
+        gender: pInfo?.gender || 'OTHER',
+        ageYears: pInfo?.ageYears || undefined,
+        place: pInfo?.place || undefined,
+      },
+    });
+    if (createRes.ok && createRes.data?.patient) {
+      try {
+        sessionStorage.setItem('clinic_crm_pending_ocr', JSON.stringify(data));
+      } catch {
+        // ignore
+      }
+      toast(`Created patient ${createRes.data.patient.name}. Opening consultation…`);
+      router.push(`/app/patients/${createRes.data.patient.id}`);
+    } else {
+      const err = !createRes.ok ? createRes.error : 'Could not auto-create patient chart';
+      toast(err, { tone: 'error' });
+    }
+  }
 
   // Clear ?action= from the URL once consumed so refresh doesn't reopen it
   useEffect(() => {
@@ -547,6 +609,15 @@ export function WorkspaceHomeClient({
                 Book
               </button>
             )}
+            <button
+              type="button"
+              className="btn btn-secondary max-sm:flex-1 text-brand-ink"
+              onClick={() => setOcrModalOpen(true)}
+              title="Scan paper prescription with AI"
+            >
+              <IconSparkle className="text-brand" />
+              Scan Rx (AI)
+            </button>
             {showQueue ? (
               <button type="button" className="btn btn-primary max-sm:flex-1" onClick={() => setAction('checkin')}>
                 <IconQueueTv />
@@ -686,6 +757,12 @@ export function WorkspaceHomeClient({
           }}
         />
       )}
+
+      <PrescriptionOcrModal
+        open={ocrModalOpen}
+        onClose={() => setOcrModalOpen(false)}
+        onApplyExtractedData={(data) => void handleOcrFromHome(data)}
+      />
     </div>
   );
 }

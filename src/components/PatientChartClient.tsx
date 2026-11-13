@@ -249,8 +249,10 @@ export function PatientChartClient({
       if (raw) {
         sessionStorage.removeItem('clinic_crm_pending_ocr');
         const parsed: PrescriptionOcrData = JSON.parse(raw);
-        setOcrSeedData(parsed);
-        setVisitOpen(true);
+        queueMicrotask(() => {
+          setOcrSeedData(parsed);
+          setVisitOpen(true);
+        });
       }
     } catch {
       // ignore

@@ -1,12 +1,15 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { formatIstDate } from '@/lib/date';
+import type { PrescriptionOcrData } from '@/lib/gemini-ocr';
 import { openNewPatient } from './AppShell';
-import { IconAlert, IconChevronRight, IconPatients, IconSearch, IconUserPlus } from './Icons';
+import { IconAlert, IconChevronRight, IconPatients, IconSearch, IconSparkle, IconUserPlus } from './Icons';
 import { hasAllergy, patientMeta, usePatientSearch, type PatientListItem } from './patients';
-import { Avatar, EmptyState, PageHeader, Spinner } from './ui';
+import { PrescriptionOcrModal } from './PrescriptionOcrModal';
+import { apiJson, Avatar, EmptyState, PageHeader, Spinner, toast } from './ui';
 
 export function PatientsClient({
   initialPatients,
@@ -17,8 +20,70 @@ export function PatientsClient({
   totalCount: number;
   maxPatients: number | null;
 }) {
+  const router = useRouter();
   const [query, setQuery] = useState('');
+  const [ocrModalOpen, setOcrModalOpen] = useState(false);
   const { results, loading } = usePatientSearch(query, initialPatients);
+
+  async function handleOcr(data: PrescriptionOcrData) {
+    setOcrModalOpen(false);
+    const pInfo = data.patient;
+    const phone = pInfo?.phone?.replace(/\D/g, '').slice(-10);
+    if (phone && phone.length === 10) {
+      const res = await apiJson<{ patients: Array<{ id: string; name: string; phone: string | null }> }>(
+        `/api/patients?search=${encodeURIComponent(phone)}`
+      );
+      if (res.ok && res.data.patients.length > 0) {
+        const match = res.data.patients[0];
+        try {
+          sessionStorage.setItem('clinic_crm_pending_ocr', JSON.stringify(data));
+        } catch {
+          // ignore
+        }
+        toast(`Matched ${match.name} (${phone}). Opening consultation…`);
+        router.push(`/app/patients/${match.id}`);
+        return;
+      }
+    }
+    if (pInfo?.name) {
+      const resName = await apiJson<{ patients: Array<{ id: string; name: string; phone: string | null }> }>(
+        `/api/patients?search=${encodeURIComponent(pInfo.name)}`
+      );
+      if (resName.ok && resName.data.patients.length === 1) {
+        const match = resName.data.patients[0];
+        try {
+          sessionStorage.setItem('clinic_crm_pending_ocr', JSON.stringify(data));
+        } catch {
+          // ignore
+        }
+        toast(`Matched ${match.name}. Opening consultation…`);
+        router.push(`/app/patients/${match.id}`);
+        return;
+      }
+    }
+    const createRes = await apiJson<{ patient: { id: string; name: string } }>('/api/patients', {
+      method: 'POST',
+      body: {
+        name: pInfo?.name || 'Prescription Patient',
+        phone: pInfo?.phone || undefined,
+        gender: pInfo?.gender || 'OTHER',
+        ageYears: pInfo?.ageYears || undefined,
+        place: pInfo?.place || undefined,
+      },
+    });
+    if (createRes.ok && createRes.data?.patient) {
+      try {
+        sessionStorage.setItem('clinic_crm_pending_ocr', JSON.stringify(data));
+      } catch {
+        // ignore
+      }
+      toast(`Created patient ${createRes.data.patient.name}. Opening consultation…`);
+      router.push(`/app/patients/${createRes.data.patient.id}`);
+    } else {
+      const err = !createRes.ok ? createRes.error : 'Could not auto-create patient chart';
+      toast(err, { tone: 'error' });
+    }
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -36,10 +101,21 @@ export function PatientsClient({
           )
         }
         actions={
-          <button type="button" onClick={openNewPatient} className="btn btn-primary">
-            <IconUserPlus />
-            New patient
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setOcrModalOpen(true)}
+              className="btn btn-secondary text-brand-ink"
+              title="Scan paper prescription with AI"
+            >
+              <IconSparkle className="text-brand" />
+              Scan Rx (AI)
+            </button>
+            <button type="button" onClick={openNewPatient} className="btn btn-primary">
+              <IconUserPlus />
+              New patient
+            </button>
+          </div>
         }
       />
 
@@ -179,6 +255,12 @@ export function PatientsClient({
           </>
         )}
       </section>
+
+      <PrescriptionOcrModal
+        open={ocrModalOpen}
+        onClose={() => setOcrModalOpen(false)}
+        onApplyExtractedData={(data) => void handleOcr(data)}
+      />
     </div>
   );
 }

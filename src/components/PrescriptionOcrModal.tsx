@@ -7,11 +7,9 @@ import {
   IconAlert,
   IconCamera,
   IconCheck,
-  IconChevronRight,
   IconRefresh,
   IconSparkle,
   IconUpload,
-  IconX,
 } from './Icons';
 import { Badge, Modal, toast } from './ui';
 
