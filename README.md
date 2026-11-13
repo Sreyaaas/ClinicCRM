@@ -1,36 +1,88 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ClinicCRM — Pilot Functional Skeleton
 
-## Getting Started
+Mobile-first cloud clinic memory, prescription history, scanned blood reports, multi-doctor queue/token management, and follow-up CRM. Built for **both** target Kerala pilots on one multi-tenant architecture:
 
-First, run the development server:
+1. **Solo Doctor Plan (`SOLO`)** — 1 doctor, mobile-first, zero staff clutter, fast patient search, past Rx memory, paper-slip photo capture, and compressed lab report scanning.
+2. **Multi-Doctor Clinic Plan (`CLINIC`)** — up to 5 doctors + reception/front-desk staff, per-doctor tokens & live queue, pre/post-consult billing, staff pre-scanning, and daily doctor-wise EOD tally.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## Architecture Highlights (Zero Vendor Lock-In)
+
+- **Database (`Supabase PostgreSQL` via Prisma):** Uses only standard `public` tables and UUIDs with our own `users` table and `clinicId` tenant scoping—easy to `pg_dump` / `pg_restore` to any Postgres server later.
+- **File Storage (`Backblaze B2` + `local` dev router):** Stores only `storageProvider` (`"b2"` | `"local"`) + `storageKey` (`clinics/<clinicId>/patients/<patientId>/...`), never raw cloud URLs. Switching to Cloudflare R2 or AWS S3 later works with zero broken links.
+- **Browser Compression:** Phone camera shots of blood reports and paper slips are resized & compressed in the browser (`src/lib/client-image.ts`) before upload to save mobile data and stretch Backblaze B2's 10 GB free tier.
+
+---
+
+## Preview Locally Without Cloud Accounts
+
+You can run the full PostgreSQL + local file storage preview on your laptop before creating Supabase or Backblaze B2 accounts:
+
+1. Ensure `.env` points to local PGlite (`DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5433/postgres?pgbouncer=true&connection_limit=1"`) and `ACTIVE_STORAGE_PROVIDER="local"`.
+2. Terminal 1 — start local PostgreSQL:
+   ```powershell
+   npm run db:local
+   ```
+3. Terminal 2 — push schema, seed demo clinics, and start Next.js:
+   ```powershell
+   npm run db:push
+   npm run db:seed
+   npm run dev
+   ```
+
+---
+
+## Quick Start (Connect Supabase + Backblaze B2)
+
+### 1. Create Environment File
+
+Copy `.env.example` to `.env`:
+
+```powershell
+Copy-Item .env.example .env
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Fill in:
+- `DATABASE_URL`: Your **Supabase PostgreSQL** connection string (pick **Mumbai `ap-south-1`** or Singapore region; Session Pooler port `5432` works cleanly with Prisma).
+- `SESSION_SECRET`: Any random 32+ character string.
+- `ACTIVE_STORAGE_PROVIDER`: `"local"` to save scans in `./.local-storage/` right now, OR `"b2"` once your Backblaze B2 bucket is configured below.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 2. Configure Backblaze B2 (No Credit Card Required for 10 GB Free Tier)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Sign up on Backblaze B2 and create a **Private** bucket (recommended region: `eu-central-003`).
+2. Create an Application Key scoped to that bucket (`Read and Write`).
+3. Set `B2_ENDPOINT`, `B2_REGION`, `B2_BUCKET`, `B2_KEY_ID`, and `B2_APP_KEY` in `.env`.
+4. Add a CORS rule to your B2 bucket (needed so mobile/web browsers can upload directly via presigned `PUT` URLs):
 
-## Learn More
+```json
+[
+  {
+    "corsRuleName": "clinic-crm-uploads",
+    "allowedOrigins": ["http://localhost:3000", "https://your-domain.com"],
+    "allowedMethods": ["s3_put", "s3_get", "s3_head"],
+    "allowedHeaders": ["*"],
+    "exposeHeaders": ["ETag"],
+    "maxAgeSeconds": 3600
+  }
+]
+```
 
-To learn more about Next.js, take a look at the following resources:
+*(You can apply B2 S3 CORS via the Backblaze B2 CLI `b2 update-bucket` or Bucket Settings.)*
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 3. Push Schema, Seed Pilot Data, and Run
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```powershell
+npm run db:push
+npm run db:seed
+npm run dev
+```
 
-## Deploy on Vercel
+Open [http://localhost:3000/login](http://localhost:3000/login).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Seeded Pilot Accounts (Password: `pilot123`)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Solo Pilot (`SOLO`):** `dr.arun@solo.in` — Dr. Arun Evening Clinic (Edappally)
+- **5-Doctor Clinic Owner (`CLINIC`):** `owner@malabarclinic.in` — Dr. Menon (Malabar Polyclinic)
+- **5-Doctor Clinic Doctor (`CLINIC`):** `dr.fathima@malabarclinic.in` — Dr. Fathima (Pediatrics)
+- **5-Doctor Clinic Front Desk (`CLINIC`):** `staff@malabarclinic.in` — Anitha (Reception Staff)
