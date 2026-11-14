@@ -21,10 +21,23 @@ export function proxy(request: NextRequest) {
     }
   }
 
+  const host = request.headers.get('host') || '';
+  const isAppSubdomain = host.startsWith('app.') || host.startsWith('crm.');
+  const hasSessionCookie =
+    request.cookies.has('__Host-clinic_session') || request.cookies.has('clinic_session');
+
+  // Subdomain handling (e.g. app.yourdomain.com): route root directly to /app or /login
+  if (isAppSubdomain && pathname === '/') {
+    return NextResponse.redirect(new URL(hasSessionCookie ? '/app' : '/login', request.url));
+  }
+
+  // Apex domain handling: if doctor is already logged in, skip the marketing landing page
+  if (pathname === '/' && hasSessionCookie && !request.nextUrl.searchParams.has('landing')) {
+    return NextResponse.redirect(new URL('/app', request.url));
+  }
+
   // Optimistic auth check for protected app routes; authoritative verification runs in requireSessionUser()
   if (pathname === '/app' || pathname.startsWith('/app/')) {
-    const hasSessionCookie =
-      request.cookies.has('__Host-clinic_session') || request.cookies.has('clinic_session');
     if (!hasSessionCookie) {
       return NextResponse.redirect(new URL('/login', request.url));
     }
@@ -45,5 +58,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|manifest.json).*)'],
 };
