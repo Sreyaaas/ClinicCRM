@@ -470,11 +470,15 @@ function ClinicTab({ user }: { user: SessionUser }) {
         </div>
       </Section>
 
-      <Section title="Payments" description="Used for UPI QR codes and bills." footer={saveBtn}>
+      <Section title="Payments" description="Consultation fee settings. Automated UPI QR gateway is currently in development." footer={saveBtn}>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="field">
-            <label htmlFor="cl-upi" className="label">UPI ID</label>
+            <div className="flex items-center justify-between">
+              <label htmlFor="cl-upi" className="label">UPI ID (Optional)</label>
+              <span className="badge badge-soft text-[11px]">In development</span>
+            </div>
             <input id="cl-upi" className="input font-mono" value={upi} onChange={(e) => setUpi(e.target.value)} placeholder="yourclinic@okicici" />
+            <span className="hint">Saved for upcoming automated QR gateway. For now, collect fees via your physical standee or cash.</span>
           </div>
           <div className="field">
             <label htmlFor="cl-fee" className="label">Default consultation fee</label>

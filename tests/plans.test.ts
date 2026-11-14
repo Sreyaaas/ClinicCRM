@@ -34,7 +34,8 @@ test('Plan tiers and pricing: affordable tiers are correctly defined', () => {
 test('Plan feature inheritance and gating', () => {
   const soloFeatures = getPlanFeatures('SOLO');
   assert.strictEqual(soloFeatures.billing, true);
-  assert.strictEqual(soloFeatures.upiQr, true);
+  // upiQr is currently marked under development
+  assert.strictEqual(soloFeatures.upiQr, false);
   assert.strictEqual(soloFeatures.queueWorkflow, false);
   assert.strictEqual(soloFeatures.multiDoctorBilling, false);
   // Dark mode, all themes, and thermal/custom print sizes unlocked across all tiers

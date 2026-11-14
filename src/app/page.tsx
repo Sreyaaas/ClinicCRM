@@ -23,7 +23,7 @@ import { PricingTable } from '@/components/landing/PricingTable';
 export const metadata: Metadata = {
   title: { absolute: `${BRAND_NAME} — ${BRAND_TAGLINE}` },
   description:
-    'Nadi is clinic software for Indian doctors: patient history, prescriptions, report scans, token queue, online booking and UPI billing — on phone and computer.',
+    'Nadi is clinic software for Indian doctors: patient history, prescriptions, report scans, token queue, online booking and OPD fee collection — on phone and computer.',
 };
 
 
@@ -182,7 +182,7 @@ export default function HomePage() {
                   time: '9:48',
                   period: 'AM',
                   title: 'Paid before he reaches the door.',
-                  text: 'The fee appears as a UPI QR for the exact amount. Scanned, confirmed — and his prescription arrives on WhatsApp in Malayalam.',
+                  text: 'The consultation fee is recorded. Cash, UPI or card confirmed — and his prescription arrives on WhatsApp in Malayalam.',
                   screen: (
                     <>
                 <div className="grid grid-cols-[auto_1fr] items-center gap-4">
@@ -287,7 +287,7 @@ export default function HomePage() {
             </h2>
             <div className="mt-16 grid gap-12 md:grid-cols-3">
               {[
-                ['UPI, not card machines.', 'An exact-amount QR for every bill. Cash and card too, all in one daily tally.'],
+                ['Cash & UPI, reconciled.', 'Log payments by cash, UPI or card in seconds. Everything in one clean daily tally.'],
                 ['WhatsApp, not SMS.', 'Prescriptions and follow-up reminders in English or Malayalam, at zero message cost.'],
                 ['Your phone, not a server.', 'Nothing to install or maintain. Open a browser and your clinic is there.'],
               ].map(([t, d]) => (

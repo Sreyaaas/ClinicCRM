@@ -99,14 +99,12 @@ export function UpiQrModal({
 
         <p className="text-[12.5px] text-muted">Scan with GPay, PhonePe, Paytm or any UPI app.</p>
 
-        {!upiId && (
-          <div className="alert alert-warning w-full text-left">
-            <IconAlert />
-            <span className="text-[12.5px]">
-              This is a demo UPI ID. Add your clinic&apos;s UPI ID in Settings → Clinic to receive real payments.
-            </span>
-          </div>
-        )}
+        <div className="alert alert-warning w-full text-left">
+          <IconAlert />
+          <span className="text-[12.5px]">
+            <strong>In development:</strong> Automatic UPI payment reconciliation is coming soon. Please verify receipt on your phone and click &quot;Mark as paid&quot;.
+          </span>
+        </div>
       </div>
     </Modal>
   );

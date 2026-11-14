@@ -15,7 +15,7 @@ export function PulseLine({ className = '', color = 'var(--accent)' }: { classNa
 }
 
 const SUB =
-  'Patient history, prescriptions, reports, tokens and UPI — in one fast app your front desk learns in an afternoon and your doctors actually enjoy using.';
+  'Patient history, prescriptions, reports, tokens and billing — in one fast app your front desk learns in an afternoon and your doctors actually enjoy using.';
 const POINTS = ['14-day free trial, no card', 'No setup or SMS fees', 'Live in your OPD on day one'];
 
 function Eyebrow({ dark = false }: { dark?: boolean }) {

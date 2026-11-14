@@ -30,7 +30,7 @@ const FEATURE_ROWS: Array<{ label: string; key?: PlanFeatureKey; all?: true }> =
   { label: 'Dark mode & all 6 clinic themes', all: true },
   { label: 'A4, A5 & 80mm thermal printing', all: true },
   { label: 'Appointments & online booking', key: 'publicBooking' },
-  { label: 'Billing with UPI QR', key: 'billing' },
+  { label: 'OPD billing & daily cash tally', key: 'billing' },
   { label: 'Quick packs & allergy alerts', key: 'allergySafety' },
   { label: 'Medical certificates & forms', key: 'certificatesPrint' },
   { label: 'Front-desk staff & nurse logins', key: 'teamManagement' },

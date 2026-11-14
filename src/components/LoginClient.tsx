@@ -167,7 +167,7 @@ export function LoginClient({ demos }: { demos: DemoAccount[] }) {
             <>
               <h2 className="text-[36px] font-bold leading-[1.05] tracking-[-0.04em]">Your whole clinic, one sign-in away.</h2>
               <ul className="mt-8 flex flex-col gap-3 text-[15.5px]">
-                {['Patient history in 2 seconds', 'Token queue and online booking', 'UPI bills and daily cash tally', 'WhatsApp reminders in Malayalam'].map((t) => (
+                {['Patient history in 2 seconds', 'Token queue and online booking', 'OPD billing and daily cash tally', 'WhatsApp reminders in Malayalam'].map((t) => (
                   <li key={t} className="flex items-center gap-3">
                     <IconCheck className="h-5 w-5 text-[var(--accent)]" /> {t}
                   </li>
