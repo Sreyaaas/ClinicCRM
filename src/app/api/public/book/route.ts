@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { ApiError, handleApiError, parseJsonBody } from '@/lib/api';
+import { assertRateLimit } from '@/lib/rate-limit';
 import { generateNextPatientCode } from '@/lib/patient-code';
 import { getPlanFeatures, isSubscriptionActive } from '@/lib/plans';
 import { prisma } from '@/lib/prisma';
@@ -14,11 +15,23 @@ const publicBookSchema = z.object({
   day: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   time: z.string().regex(/^\d{2}:\d{2}$/),
   reason: z.string().trim().max(240).nullable().optional(),
+  hp_website: z.string().optional(),
 });
 
 export async function POST(request: Request) {
   try {
+    assertRateLimit(request, {
+      action: 'public_book_ip',
+      limit: 10,
+      windowMs: 15 * 60 * 1000,
+      message: 'Too many booking attempts. Please wait a few minutes.',
+    });
+
     const body = await parseJsonBody(request, publicBookSchema);
+
+    if (body.hp_website && body.hp_website.trim().length > 0) {
+      throw new ApiError(400, 'Invalid booking submission.', 'BOT_DETECTED');
+    }
 
     const clinic = await prisma.clinic.findUnique({
       where: { slug: body.clinicSlug },

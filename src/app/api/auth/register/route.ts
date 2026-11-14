@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createUserSession } from '@/lib/auth';
 import { ApiError, handleApiError, parseJsonBody } from '@/lib/api';
+import { assertRateLimit } from '@/lib/rate-limit';
 import { hashPassword } from '@/lib/password';
 import { PLAN_DEFAULTS, TRIAL_MS } from '@/lib/plans';
 import { prisma } from '@/lib/prisma';
@@ -15,6 +16,7 @@ const registerSchema = z.object({
   specialty: z.string().trim().max(80).optional(),
   consultationFee: z.number().int().min(0).max(50000).optional(),
   password: z.string().min(6).max(100),
+  hp_website: z.string().optional(),
 });
 
 function toSlug(name: string): string {
@@ -29,7 +31,18 @@ function toSlug(name: string): string {
 
 export async function POST(request: Request) {
   try {
+    assertRateLimit(request, {
+      action: 'register_ip',
+      limit: 5,
+      windowMs: 60 * 60 * 1000,
+      message: 'Too many clinic registrations from this network. Please try again later.',
+    });
+
     const body = await parseJsonBody(request, registerSchema);
+
+    if (body.hp_website && body.hp_website.trim().length > 0) {
+      throw new ApiError(400, 'Invalid submission.', 'BOT_DETECTED');
+    }
 
     const existing = await prisma.user.findUnique({
       where: { email: body.email },

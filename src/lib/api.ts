@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import { ZodError, type ZodType } from 'zod';
 import type { UserRole } from '@prisma/client';
 import { getSessionUser, type SessionUser } from './auth';
+import { RateLimitError } from './rate-limit';
 import {
   getPlanFeatures,
   getTierRequiredForFeature,
@@ -73,6 +74,18 @@ export async function parseJsonBody<T>(request: Request, schema: ZodType<T>): Pr
 
 export function handleApiError(error: unknown): NextResponse {
   unstable_rethrow(error);
+  if (error instanceof RateLimitError) {
+    return NextResponse.json(
+      { error: error.message, code: error.code },
+      {
+        status: error.status,
+        headers: error.retryAfterSeconds
+          ? { 'Retry-After': String(error.retryAfterSeconds) }
+          : undefined,
+      }
+    );
+  }
+
   if (error instanceof ApiError) {
     return NextResponse.json(
       { error: error.message, code: error.code },

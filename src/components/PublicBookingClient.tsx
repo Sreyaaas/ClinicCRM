@@ -41,6 +41,7 @@ export function PublicBookingClient({
   const [phone, setPhone] = useState('');
   const [age, setAge] = useState('');
   const [reason, setReason] = useState('');
+  const [hpWebsite, setHpWebsite] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState<{ patientCode: string; doctorName: string; day: string; time: string } | null>(null);
@@ -68,6 +69,7 @@ export function PublicBookingClient({
           day,
           time,
           reason: reason || null,
+          hp_website: hpWebsite || undefined,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -219,6 +221,20 @@ export function PublicBookingClient({
             </section>
 
             <section className="card flex flex-col gap-4 p-5">
+              {/* Honeypot field for anti-bot protection */}
+              <div className="absolute -left-[9999px] top-auto h-0 w-0 overflow-hidden" aria-hidden="true">
+                <label htmlFor="bk-hp-website">Website</label>
+                <input
+                  id="bk-hp-website"
+                  type="text"
+                  name="hp_website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={hpWebsite}
+                  onChange={(e) => setHpWebsite(e.target.value)}
+                />
+              </div>
+
               <h2 className="text-[14px] font-semibold">Patient details</h2>
               <div className="field">
                 <label htmlFor="bk-name" className="label">Full name</label>

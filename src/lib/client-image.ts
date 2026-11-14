@@ -6,7 +6,7 @@ export interface PreparedUploadFile {
   originalSizeBytes: number;
 }
 
-const MAX_PDF_BYTES = 10 * 1024 * 1024;
+const MAX_PDF_BYTES = 6 * 1024 * 1024;
 const MAX_IMAGE_DIMENSION = 1600;
 
 /**
@@ -19,7 +19,7 @@ export async function prepareDocumentForUpload(
 ): Promise<PreparedUploadFile> {
   if (file.type === 'application/pdf') {
     if (file.size > MAX_PDF_BYTES) {
-      throw new Error('PDF file exceeds the 10 MB limit.');
+      throw new Error('PDF file exceeds the 6 MB limit.');
     }
     return {
       blob: file,

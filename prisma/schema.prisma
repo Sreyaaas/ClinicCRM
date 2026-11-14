@@ -140,7 +140,7 @@ model Clinic {
   maxDoctors          Int                @default(1)
   maxStaff            Int                @default(0)
   maxPatients         Int?
-  maxStorageMb        Int                @default(10240)
+  maxStorageMb        Int                @default(2048)
   maxBranches         Int                @default(1)
   billingTiming       BillingTiming      @default(FLEXIBLE)
   defaultConsultFee   Int                @default(200)

@@ -60,7 +60,7 @@ export const PLAN_DEFAULTS: Record<PlanTier, PlanDefaults> = {
     maxDoctors: 1,
     maxStaff: 0,
     maxPatients: 100,
-    maxStorageMb: 1024,
+    maxStorageMb: 250,
     maxBranches: 1,
     features: {
       appointments: false,
@@ -86,7 +86,7 @@ export const PLAN_DEFAULTS: Record<PlanTier, PlanDefaults> = {
       whiteLabelBranding: false,
     },
     highlights: [
-      '1 Doctor · Up to 100 Patients · 1 GB cloud storage',
+      '1 Doctor · Up to 100 Patients · 250 MB cloud storage',
       'Find any patient in 2 seconds by phone or name',
       'Camera photo scan for paper slips & blood reports',
       'Rx print (A4/A5/Thermal), Dark Mode & WhatsApp links',
@@ -103,7 +103,7 @@ export const PLAN_DEFAULTS: Record<PlanTier, PlanDefaults> = {
     maxDoctors: 1,
     maxStaff: 0,
     maxPatients: null,
-    maxStorageMb: 10240,
+    maxStorageMb: 2048,
     maxBranches: 1,
     features: {
       appointments: true,
@@ -129,7 +129,7 @@ export const PLAN_DEFAULTS: Record<PlanTier, PlanDefaults> = {
       whiteLabelBranding: false,
     },
     highlights: [
-      'Unlimited patients & 10 GB private cloud photo storage',
+      'Unlimited patients & 2 GB private cloud photo storage',
       'Quick Illness Packs + Instant Drug & Allergy Warnings',
       'Online Patient Booking Link (/book/clinic) + Slot Calendar',
       'Fees & Daily Cash/UPI Tally + A4, A5 & 80mm Thermal Print + All Themes',
@@ -146,7 +146,7 @@ export const PLAN_DEFAULTS: Record<PlanTier, PlanDefaults> = {
     maxDoctors: 5,
     maxStaff: 5,
     maxPatients: null,
-    maxStorageMb: 51200,
+    maxStorageMb: 10240,
     maxBranches: 1,
     recommended: true,
     features: {
@@ -173,7 +173,7 @@ export const PLAN_DEFAULTS: Record<PlanTier, PlanDefaults> = {
       whiteLabelBranding: false,
     },
     highlights: [
-      'Up to 5 Doctors + 5 Reception/Nurse Staff logins (50 GB)',
+      'Up to 5 Doctors + 5 Reception/Nurse Staff logins (10 GB)',
       'Live Walk-In Token Queue + Waiting-Room TV Screen',
       'Multi-Doctor OPD consultation fee collection & splitting',
       'Daily Clinic Expense Log & Net Cash in Hand tally',
@@ -190,7 +190,7 @@ export const PLAN_DEFAULTS: Record<PlanTier, PlanDefaults> = {
     maxDoctors: 15,
     maxStaff: 15,
     maxPatients: null,
-    maxStorageMb: 204800,
+    maxStorageMb: 25600,
     maxBranches: 1,
     features: {
       appointments: true,
@@ -216,7 +216,7 @@ export const PLAN_DEFAULTS: Record<PlanTier, PlanDefaults> = {
       whiteLabelBranding: false,
     },
     highlights: [
-      '15 Doctors + 15 Staff seats & 200 GB storage archive',
+      '15 Doctors + 15 Staff seats & 25 GB storage archive',
       'Multi-item GST Invoices, Profit Reports & CA CSV download',
       'Lab Tests & Medical Store Order tracker',
       'Complete Staff Activity Audit Log for compliance & accountability',
@@ -233,7 +233,7 @@ export const PLAN_DEFAULTS: Record<PlanTier, PlanDefaults> = {
     maxDoctors: 999,
     maxStaff: 999,
     maxPatients: null,
-    maxStorageMb: 1048576,
+    maxStorageMb: 102400,
     maxBranches: 10,
     features: {
       appointments: true,
@@ -259,7 +259,7 @@ export const PLAN_DEFAULTS: Record<PlanTier, PlanDefaults> = {
       whiteLabelBranding: true,
     },
     highlights: [
-      'Unlimited Doctors & Staff across up to 10 Clinic Branches (1 TB)',
+      'Unlimited Doctors & Staff across up to 10 Clinic Branches (100 GB)',
       'Custom watermark on Rx & Bills + hide platform footer branding',
       'Pick any custom hex brand color + Dark navigation sidebar',
       'Full multi-branch switching & centralized admin controls',

@@ -27,6 +27,13 @@ test('Plan tiers and pricing: affordable tiers are correctly defined', () => {
   assert.strictEqual(PLAN_ORDER[2], 'GROWTH');
   assert.strictEqual(PLAN_ORDER[3], 'ENTERPRISE');
 
+  // Storage allocations per plan (safe against abuse, proportional to team size)
+  assert.strictEqual(PLAN_DEFAULTS.STARTER.maxStorageMb, 250);
+  assert.strictEqual(PLAN_DEFAULTS.SOLO.maxStorageMb, 2048);
+  assert.strictEqual(PLAN_DEFAULTS.CLINIC.maxStorageMb, 10240);
+  assert.strictEqual(PLAN_DEFAULTS.GROWTH.maxStorageMb, 25600);
+  assert.strictEqual(PLAN_DEFAULTS.ENTERPRISE.maxStorageMb, 102400);
+
   // getPlanDefinition returns accurate metadata
   assert.strictEqual(getPlanDefinition('SOLO').shortName, 'Solo Pro');
 });

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createUserSession } from '@/lib/auth';
 import { ApiError, handleApiError, parseJsonBody } from '@/lib/api';
+import { assertRateLimit } from '@/lib/rate-limit';
 import { verifyPassword } from '@/lib/password';
 import { prisma } from '@/lib/prisma';
 
@@ -12,7 +13,22 @@ const loginSchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    assertRateLimit(request, {
+      action: 'login_ip',
+      limit: 20,
+      windowMs: 5 * 60 * 1000,
+      message: 'Too many login attempts from this network. Please wait a few minutes.',
+    });
+
     const body = await parseJsonBody(request, loginSchema);
+
+    assertRateLimit(request, {
+      action: 'login_account',
+      limit: 10,
+      windowMs: 5 * 60 * 1000,
+      customKey: body.email,
+      message: 'Too many login attempts for this account. Please wait a few minutes.',
+    });
 
     const user = await prisma.user.findUnique({
       where: { email: body.email },

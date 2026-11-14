@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { ApiError, handleApiError, parseJsonBody, requireApiUser } from '@/lib/api';
+import { assertRateLimit } from '@/lib/rate-limit';
 import { prisma } from '@/lib/prisma';
 import { isAllowedDocumentMime } from '@/lib/storage/router';
 
@@ -23,12 +24,18 @@ const createDocumentSchema = z.object({
   storageKey: z.string().trim().min(10).max(400),
   originalFilename: z.string().trim().min(1).max(200),
   mimeType: z.string().trim().min(3).max(100),
-  sizeBytes: z.number().int().min(1).max(12 * 1024 * 1024),
+  sizeBytes: z.number().int().min(1).max(6 * 1024 * 1024),
 });
 
 export async function POST(request: Request) {
   try {
     const user = await requireApiUser({ requireActiveSub: true });
+    assertRateLimit(request, {
+      action: 'create_document',
+      limit: 40,
+      windowMs: 5 * 60 * 1000,
+      customKey: user.clinicId,
+    });
     const body = await parseJsonBody(request, createDocumentSchema);
 
     if (!isAllowedDocumentMime(body.mimeType)) {
@@ -65,6 +72,20 @@ export async function POST(request: Request) {
 
     if (Number.isNaN(parsedDate.getTime())) {
       throw new ApiError(400, 'Invalid report date.', 'INVALID_DATE');
+    }
+
+    const usageAgg = await prisma.patientDocument.aggregate({
+      where: { clinicId: user.clinicId },
+      _sum: { sizeBytes: true },
+    });
+    const usedBytes = usageAgg._sum.sizeBytes ?? 0;
+    const maxBytes = user.clinic.maxStorageMb * 1024 * 1024;
+    if (usedBytes + body.sizeBytes > maxBytes) {
+      throw new ApiError(
+        403,
+        `Clinic storage quota (${user.clinic.maxStorageMb} MB) exceeded. Upgrade your plan in Settings.`,
+        'STORAGE_QUOTA_EXCEEDED'
+      );
     }
 
     const document = await prisma.$transaction(async (tx) => {

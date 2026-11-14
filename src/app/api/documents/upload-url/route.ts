@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { ApiError, handleApiError, parseJsonBody, requireApiUser } from '@/lib/api';
+import { assertRateLimit } from '@/lib/rate-limit';
 import { prisma } from '@/lib/prisma';
 import { createUploadTarget, isAllowedDocumentMime } from '@/lib/storage/router';
 
@@ -18,12 +19,18 @@ const uploadUrlSchema = z.object({
     ])
     .default('BLOOD_REPORT'),
   mimeType: z.string().trim().min(3).max(100),
-  sizeBytes: z.number().int().min(1).max(12 * 1024 * 1024),
+  sizeBytes: z.number().int().min(1).max(6 * 1024 * 1024),
 });
 
 export async function POST(request: Request) {
   try {
     const user = await requireApiUser({ requireActiveSub: true });
+    assertRateLimit(request, {
+      action: 'upload_url',
+      limit: 30,
+      windowMs: 5 * 60 * 1000,
+      customKey: user.clinicId,
+    });
     const body = await parseJsonBody(request, uploadUrlSchema);
 
     if (!isAllowedDocumentMime(body.mimeType)) {

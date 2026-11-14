@@ -16,6 +16,7 @@ export function RegisterClient({ initialTier }: { initialTier: PlanTier }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fee, setFee] = useState('250');
+  const [hpWebsite, setHpWebsite] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const plan = PLAN_DEFAULTS[planTier];
@@ -37,6 +38,7 @@ export function RegisterClient({ initialTier }: { initialTier: PlanTier }) {
           email,
           password,
           consultationFee: Number.parseInt(fee || '250', 10) || 250,
+          hp_website: hpWebsite || undefined,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -72,6 +74,20 @@ export function RegisterClient({ initialTier }: { initialTier: PlanTier }) {
 
         <form onSubmit={submit} className="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
           <div className="card flex flex-col gap-6 p-5 sm:p-7">
+            {/* Honeypot field for anti-bot protection */}
+            <div className="absolute -left-[9999px] top-auto h-0 w-0 overflow-hidden" aria-hidden="true">
+              <label htmlFor="reg-hp-website">Website</label>
+              <input
+                id="reg-hp-website"
+                type="text"
+                name="hp_website"
+                tabIndex={-1}
+                autoComplete="off"
+                value={hpWebsite}
+                onChange={(e) => setHpWebsite(e.target.value)}
+              />
+            </div>
+
             {error && (
               <div role="alert" className="alert alert-danger">
                 <IconAlert />
