@@ -16,7 +16,7 @@ import {
   PLAN_ORDER,
 } from '@/lib/plans';
 import type { InfrastructureStatus } from '@/lib/supabase';
-import { canUseThemePreset, resolveThemeAccent, THEME_PRESETS } from '@/lib/themes';
+import { resolveThemeAccent, THEME_PRESETS } from '@/lib/themes';
 import { ThemeSwitcher } from './AppShell';
 import {
   IconBuilding,
@@ -644,8 +644,10 @@ function AppearanceTab({ user, isOwner }: { user: SessionUser; isOwner: boolean 
       body: {
         themePreset: preset,
         ...(features.whiteLabelBranding ? { brandColor, sidebarTone: sidebar, rxWatermark: watermark || null, hidePoweredBy } : {}),
-        ...(features.nightAndLayoutCustomization ? { colorMode, uiDensity: density, cardRadius: radius } : {}),
-        ...(features.customPrintSizes ? { printPaperSize: paper } : {}),
+        colorMode,
+        uiDensity: density,
+        cardRadius: radius,
+        printPaperSize: paper,
       },
     });
     setSaving(false);
@@ -687,16 +689,14 @@ function AppearanceTab({ user, isOwner }: { user: SessionUser; isOwner: boolean 
           <Section title="Accent color" description="Used for buttons, highlights and your booking page." footer={saveBar}>
             <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-4">
               {THEME_PRESETS.map((t) => {
-                const allowed = canUseThemePreset(c.planTier, t.id);
                 const selected = preset === t.id;
                 return (
                   <button
                     key={t.id}
                     type="button"
-                    disabled={!allowed}
                     onClick={() => setPreset(t.id)}
                     aria-pressed={selected}
-                    className={`relative flex items-center gap-3 rounded-[var(--r-control)] border p-3 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                    className={`relative flex items-center gap-3 rounded-[var(--r-control)] border p-3 text-left transition-colors ${
                       selected ? 'border-transparent ring-2 ring-[var(--brand)]' : 'border-line hover:bg-surface-2'
                     }`}
                   >
@@ -705,9 +705,7 @@ function AppearanceTab({ user, isOwner }: { user: SessionUser; isOwner: boolean 
                     </span>
                     <span className="min-w-0">
                       <span className="block text-[13.5px] font-medium">{t.label}</span>
-                      <span className="block truncate text-[12px] text-muted">
-                        {allowed ? t.description : `${PLAN_DEFAULTS[t.minTier].shortName} plan`}
-                      </span>
+                      <span className="block truncate text-[12px] text-muted">{t.description}</span>
                     </span>
                   </button>
                 );
@@ -751,14 +749,8 @@ function AppearanceTab({ user, isOwner }: { user: SessionUser; isOwner: boolean 
             title="Layout"
             description="Default mode, spacing and corner style for everyone in the clinic."
             footer={saveBar}
-            aside={!features.nightAndLayoutCustomization ? <Badge><IconLock className="h-3 w-3" /> Growth</Badge> : undefined}
           >
-            {!features.nightAndLayoutCustomization && (
-              <div className="mb-4">
-                <Locked>Clinic-wide dark mode, compact spacing and corner styles are on the Growth plan.</Locked>
-              </div>
-            )}
-            <fieldset disabled={!features.nightAndLayoutCustomization} className="grid gap-5 disabled:opacity-55 sm:grid-cols-3">
+            <fieldset className="grid gap-5 sm:grid-cols-3">
               <div className="field">
                 <span className="label">Default mode</span>
                 <div className="seg seg-block">
@@ -801,12 +793,11 @@ function AppearanceTab({ user, isOwner }: { user: SessionUser; isOwner: boolean 
                       ['THERMAL', '80 mm'],
                     ] as const
                   ).map(([v, l]) => (
-                    <button key={v} type="button" disabled={!features.customPrintSizes && v !== 'A4'} aria-pressed={paper === v} onClick={() => setPaper(v)}>
+                    <button key={v} type="button" aria-pressed={paper === v} onClick={() => setPaper(v)}>
                       {l}
                     </button>
                   ))}
                 </div>
-                {!features.customPrintSizes && <span className="hint">A5 and thermal on Solo Pro and above.</span>}
               </div>
               <div className="field">
                 <span className="label">Sidebar</span>

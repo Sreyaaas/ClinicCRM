@@ -37,12 +37,19 @@ test('Plan feature inheritance and gating', () => {
   assert.strictEqual(soloFeatures.upiQr, true);
   assert.strictEqual(soloFeatures.queueWorkflow, false);
   assert.strictEqual(soloFeatures.multiDoctorBilling, false);
+  // Dark mode, all themes, and thermal/custom print sizes unlocked across all tiers
+  assert.strictEqual(soloFeatures.clinicThemes, true);
+  assert.strictEqual(soloFeatures.nightAndLayoutCustomization, true);
+  assert.strictEqual(soloFeatures.customPrintSizes, true);
 
   const clinicFeatures = getPlanFeatures('CLINIC');
   assert.strictEqual(clinicFeatures.billing, true);
   assert.strictEqual(clinicFeatures.queueWorkflow, true);
   assert.strictEqual(clinicFeatures.multiDoctorBilling, true);
   assert.strictEqual(clinicFeatures.multiBranch, false);
+  assert.strictEqual(clinicFeatures.clinicThemes, true);
+  assert.strictEqual(clinicFeatures.nightAndLayoutCustomization, true);
+  assert.strictEqual(clinicFeatures.customPrintSizes, true);
 
   const enterpriseFeatures = getPlanFeatures('ENTERPRISE');
   assert.strictEqual(enterpriseFeatures.multiBranch, true);

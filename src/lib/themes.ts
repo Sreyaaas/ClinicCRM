@@ -20,52 +20,42 @@ export const THEME_PRESETS: ThemePresetDefinition[] = [
     id: 'blue',
     label: 'Teal',
     color: '#0f766e',
-    minTier: 'CLINIC',
+    minTier: 'STARTER',
     description: 'Calm and clinical',
   },
   {
     id: 'emerald',
     label: 'Forest',
     color: '#047857',
-    minTier: 'CLINIC',
+    minTier: 'STARTER',
     description: 'Fresh natural green',
   },
   {
     id: 'indigo',
     label: 'Indigo',
     color: '#4f46e5',
-    minTier: 'GROWTH',
+    minTier: 'STARTER',
     description: 'Modern and confident',
   },
   {
     id: 'rose',
     label: 'Coral',
     color: '#e11d48',
-    minTier: 'GROWTH',
+    minTier: 'STARTER',
     description: 'Warm, friendly tone',
   },
   {
     id: 'slate',
     label: 'Graphite',
     color: '#3f3f46',
-    minTier: 'GROWTH',
+    minTier: 'STARTER',
     description: 'Minimal monochrome',
   },
 ];
 
-const TIER_RANK: Record<PlanTier, number> = {
-  STARTER: 1,
-  SOLO: 2,
-  CLINIC: 3,
-  GROWTH: 4,
-  ENTERPRISE: 5,
-};
-
 export function canUseThemePreset(currentTier: PlanTier, presetId: string): boolean {
   if (presetId === 'custom') return currentTier === 'ENTERPRISE';
-  const found = THEME_PRESETS.find((t) => t.id === presetId);
-  if (!found) return true;
-  return TIER_RANK[currentTier] >= TIER_RANK[found.minTier];
+  return true;
 }
 
 export function resolveThemeAccent(clinic: { themePreset?: string | null; brandColor?: string | null }): string {

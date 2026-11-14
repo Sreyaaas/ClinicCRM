@@ -6,25 +6,23 @@ import {
   THEME_PRESETS,
 } from '../src/lib/themes';
 
-test('Theme presets are gated according to tier ranking', () => {
-  // Teal is available on STARTER+
-  assert.strictEqual(canUseThemePreset('SOLO', 'teal'), true);
+test('Theme presets are available across all tiers; custom hex color gated to Enterprise', () => {
+  // All standard themes are available on all tiers
   assert.strictEqual(canUseThemePreset('STARTER', 'teal'), true);
+  assert.strictEqual(canUseThemePreset('STARTER', 'blue'), true);
+  assert.strictEqual(canUseThemePreset('SOLO', 'emerald'), true);
+  assert.strictEqual(canUseThemePreset('SOLO', 'indigo'), true);
+  assert.strictEqual(canUseThemePreset('CLINIC', 'rose'), true);
+  assert.strictEqual(canUseThemePreset('CLINIC', 'slate'), true);
 
-  // Blue is available on CLINIC+
-  assert.strictEqual(canUseThemePreset('SOLO', 'blue'), false);
-  assert.strictEqual(canUseThemePreset('CLINIC', 'blue'), true);
-
-  // Indigo is available on GROWTH+
-  assert.strictEqual(canUseThemePreset('CLINIC', 'indigo'), false);
-  assert.strictEqual(canUseThemePreset('GROWTH', 'indigo'), true);
-
-  // Custom is available on ENTERPRISE only
+  // Custom hex color requires ENTERPRISE
+  assert.strictEqual(canUseThemePreset('SOLO', 'custom'), false);
+  assert.strictEqual(canUseThemePreset('CLINIC', 'custom'), false);
   assert.strictEqual(canUseThemePreset('GROWTH', 'custom'), false);
   assert.strictEqual(canUseThemePreset('ENTERPRISE', 'custom'), true);
 
   // Preset definitions exist
-  assert.ok(THEME_PRESETS.length > 0);
+  assert.strictEqual(THEME_PRESETS.length, 6);
 });
 
 test('Theme accent color resolves correctly with fallback', () => {
