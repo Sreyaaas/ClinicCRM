@@ -16,10 +16,14 @@ export async function GET() {
     });
   } catch (error) {
     console.error('[HEALTH_CHECK_FAILED]', error);
+    const rawDbUrl = process.env.DATABASE_URL || '';
+    const maskedDbUrl = rawDbUrl.replace(/:([^:@]+)@/, ':***@');
     return NextResponse.json(
       {
         ok: false,
         database: 'disconnected',
+        error: error instanceof Error ? error.message : String(error),
+        dbTarget: maskedDbUrl,
         storageProvider: getActiveStorageProvider(),
         supabaseMode: infra.supabaseMode,
       },
