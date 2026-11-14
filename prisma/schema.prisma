@@ -318,6 +318,7 @@ model ClinicMedicinePreset {
   doctor User?  @relation(fields: [doctorId], references: [id], onDelete: SetNull)
 
   @@index([clinicId, medicineName])
+  @@index([clinicId, usageCount(sort: Desc)])
 }
 
 model ConditionTemplate {
@@ -337,6 +338,7 @@ model ConditionTemplate {
   doctor User?  @relation(fields: [doctorId], references: [id], onDelete: SetNull)
 
   @@index([clinicId, name])
+  @@index([clinicId, usageCount(sort: Desc)])
 }
 
 model PatientDocument {
@@ -363,6 +365,7 @@ model PatientDocument {
 
   @@index([clinicId, patientId, reportDate])
   @@index([visitId])
+  @@index([clinicId, sizeBytes])
 }
 
 model QueueEntry {
@@ -476,6 +479,7 @@ model BillingRecord {
 
   @@index([clinicId, createdAt])
   @@index([clinicId, doctorId, paymentStatus])
+  @@index([clinicId, paymentStatus, createdAt(sort: Desc)])
 }
 
 model Expense {

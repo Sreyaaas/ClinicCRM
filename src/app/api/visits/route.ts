@@ -186,32 +186,65 @@ export async function POST(request: Request) {
       }
 
       if (body.saveNewPresets && body.prescriptions.length > 0) {
+        const itemNames = body.prescriptions.map((p) => p.medicineName.trim());
+        const existingPresets = await tx.clinicMedicinePreset.findMany({
+          where: {
+            clinicId: user.clinicId,
+            medicineName: { in: itemNames, mode: 'insensitive' },
+          },
+        });
+
+        const existingMap = new Map(
+          existingPresets.map((ep) => [ep.medicineName.toLowerCase(), ep])
+        );
+
+        const updates: Promise<unknown>[] = [];
+        const toCreate: Array<{
+          clinicId: string;
+          doctorId: string;
+          medicineName: string;
+          defaultDosage: string | null;
+          defaultTiming: string | null;
+          defaultDuration: number | null;
+          instructions: string | null;
+          usageCount: number;
+        }> = [];
+
         for (const item of body.prescriptions) {
-          const existingPreset = await tx.clinicMedicinePreset.findFirst({
-            where: {
+          const trimmed = item.medicineName.trim();
+          const match = existingMap.get(trimmed.toLowerCase());
+          if (match && match.id !== 'pending') {
+            updates.push(
+              tx.clinicMedicinePreset.update({
+                where: { id: match.id },
+                data: { usageCount: { increment: 1 } },
+              })
+            );
+          } else if (!match) {
+            toCreate.push({
               clinicId: user.clinicId,
-              medicineName: { equals: item.medicineName, mode: 'insensitive' },
-            },
-          });
-          if (existingPreset) {
-            await tx.clinicMedicinePreset.update({
-              where: { id: existingPreset.id },
-              data: { usageCount: { increment: 1 } },
+              doctorId: user.id,
+              medicineName: trimmed,
+              defaultDosage: item.dosage || null,
+              defaultTiming: item.timing || null,
+              defaultDuration: item.durationDays ?? null,
+              instructions: item.instructions || null,
+              usageCount: 1,
             });
-          } else {
-            await tx.clinicMedicinePreset.create({
-              data: {
-                clinicId: user.clinicId,
-                doctorId: user.id,
-                medicineName: item.medicineName,
-                defaultDosage: item.dosage || null,
-                defaultTiming: item.timing || null,
-                defaultDuration: item.durationDays ?? null,
-                instructions: item.instructions || null,
-                usageCount: 1,
-              },
-            });
+            existingMap.set(trimmed.toLowerCase(), { id: 'pending', medicineName: trimmed } as (typeof existingPresets)[number]);
           }
+        }
+
+        if (toCreate.length > 0) {
+          updates.push(
+            tx.clinicMedicinePreset.createMany({
+              data: toCreate,
+            })
+          );
+        }
+
+        if (updates.length > 0) {
+          await Promise.all(updates);
         }
       }
 

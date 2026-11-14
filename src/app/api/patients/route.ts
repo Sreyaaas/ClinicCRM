@@ -23,18 +23,26 @@ export async function GET(request: Request) {
     const user = await requireApiUser();
     const { searchParams } = new URL(request.url);
     const q = (searchParams.get('q') ?? '').trim();
+    const isNumeric = /^\d+$/.test(q);
 
     const where: Prisma.PatientWhereInput = {
       clinicId: user.clinicId,
       ...(q
-        ? {
-            OR: [
-              { name: { contains: q, mode: 'insensitive' } },
-              { phone: { contains: q, mode: 'insensitive' } },
-              { patientCode: { contains: q, mode: 'insensitive' } },
-              { place: { contains: q, mode: 'insensitive' } },
-            ],
-          }
+        ? isNumeric
+          ? {
+              OR: [
+                { phone: { startsWith: q } },
+                { patientCode: { contains: q, mode: 'insensitive' } },
+              ],
+            }
+          : {
+              OR: [
+                { name: { contains: q, mode: 'insensitive' } },
+                { patientCode: { contains: q, mode: 'insensitive' } },
+                { phone: { contains: q, mode: 'insensitive' } },
+                { place: { contains: q, mode: 'insensitive' } },
+              ],
+            }
         : {}),
     };
 

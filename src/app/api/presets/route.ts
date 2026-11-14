@@ -26,7 +26,16 @@ export async function GET(request: Request) {
       take: 50,
     });
 
-    return NextResponse.json({ presets });
+    return NextResponse.json(
+      { presets },
+      {
+        headers: {
+          'Cache-Control': q
+            ? 'private, no-cache'
+            : 'private, max-age=60, stale-while-revalidate=300',
+        },
+      }
+    );
   } catch (error) {
     return handleApiError(error);
   }
