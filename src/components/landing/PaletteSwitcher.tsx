@@ -31,24 +31,53 @@ function readSaved(key: string, param: string): string | null {
   }
 }
 
-/** Temporary design tool: preview every palette and hero style live, then we lock one in. */
+/** Design tool for dev preview: hidden on production by default, accessible via ?dev=true or Alt+D */
 export function PaletteSwitcher() {
   const [open, setOpen] = useState(false);
   const [current, setCurrent] = useState<string>(DEFAULT_PALETTE.id);
-  const [hero, setHero] = useState<string>('split');
+  const [hero, setHero] = useState<string>('centered');
+  const [isDev, setIsDev] = useState(false);
 
   useEffect(() => {
-    const p = LANDING_PALETTES.find((x) => x.id === readSaved(KEY, 'palette'));
-    const h = HERO_STYLES.find((x) => x.id === readSaved(HERO_KEY, 'hero'));
-    if (p) applyPalette(p);
-    if (h) {
-      const el = root();
-      if (el) el.dataset.hero = h.id;
+    let devRequested = false;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      devRequested =
+        process.env.NODE_ENV === 'development' ||
+        params.has('dev') ||
+        params.has('preview') ||
+        params.has('palette') ||
+        params.has('hero') ||
+        window.location.hash === '#dev';
+    } catch {
+      // ignore
     }
+
+    // Toggle via Alt+D shortcut key
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.altKey && (e.key === 'd' || e.key === 'D')) || (e.ctrlKey && e.shiftKey && (e.key === 'D' || e.key === 'd'))) {
+        setIsDev((prev) => !prev);
+        setOpen(true);
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+
+    const savedPalette = readSaved(KEY, 'palette');
+    const savedHero = readSaved(HERO_KEY, 'hero');
+    const p = LANDING_PALETTES.find((x) => x.id === savedPalette) ?? DEFAULT_PALETTE;
+    const h = HERO_STYLES.find((x) => x.id === savedHero) ?? { id: 'centered', name: 'Centered' };
+
+    if (p) applyPalette(p);
+    const el = root();
+    if (el) el.dataset.hero = h.id;
+
     queueMicrotask(() => {
+      setIsDev(devRequested);
       if (p) setCurrent(p.id);
       if (h) setHero(h.id);
     });
+
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   function choose(p: LandingPalette) {
@@ -71,6 +100,10 @@ export function PaletteSwitcher() {
       // ignore
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  if (!isDev) {
+    return null;
   }
 
   const active = LANDING_PALETTES.find((p) => p.id === current) ?? DEFAULT_PALETTE;

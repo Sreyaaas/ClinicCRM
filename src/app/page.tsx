@@ -56,7 +56,7 @@ export default function HomePage() {
   return (
     <div
       data-landing
-      data-hero="split"
+      data-hero="centered"
       style={DEFAULT_PALETTE.vars as React.CSSProperties}
       className="theme-light min-h-dvh overflow-x-clip"
     >
