@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { BRAND_NAME, BrandLogo } from '@/components/Brand';
 import { IconAlert, IconArrowRight, IconCheck, IconEye, IconEyeOff } from '@/components/Icons';
@@ -16,7 +15,6 @@ export interface DemoAccount {
 }
 
 export function LoginClient({ demos }: { demos: DemoAccount[] }) {
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [show, setShow] = useState(false);
@@ -38,7 +36,7 @@ export function LoginClient({ demos }: { demos: DemoAccount[] }) {
         setSubmitting(null);
         return;
       }
-      router.replace('/app');
+      window.location.replace('/app');
     } catch {
       setError('Network error. Check your connection and try again.');
       setSubmitting(null);

@@ -3,13 +3,11 @@
 import type { PlanTier } from '@prisma/client';
 import Link from 'next/link';
 import { BrandLogo } from './Brand';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { formatStorageMb, PLAN_DEFAULTS, PLAN_ORDER } from '@/lib/plans';
 import { IconAlert, IconCheck } from './Icons';
 
 export function RegisterClient({ initialTier }: { initialTier: PlanTier }) {
-  const router = useRouter();
   const [planTier, setPlanTier] = useState<PlanTier>(initialTier);
   const [clinicName, setClinicName] = useState('');
   const [doctorName, setDoctorName] = useState('');
@@ -47,7 +45,7 @@ export function RegisterClient({ initialTier }: { initialTier: PlanTier }) {
         setSubmitting(false);
         return;
       }
-      router.replace('/app');
+      window.location.replace('/app');
     } catch {
       setError('Network error. Please try again.');
       setSubmitting(false);

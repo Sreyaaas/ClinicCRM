@@ -15,6 +15,7 @@ import { getPlanFeatures } from '@/lib/plans';
 import { prisma } from '@/lib/prisma';
 
 export const metadata: Metadata = { title: 'Today' };
+export const instant = false;
 
 async function WorkspaceHomeLoader({ searchParams }: { searchParams: Promise<{ action?: string }> }) {
   const user = await requireSessionUser();
