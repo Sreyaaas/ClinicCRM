@@ -124,152 +124,152 @@ export default function HomePage() {
             <div className="mt-14">
               <DayTour
                 stops={[
-                {
-                  time: '9:02',
-                  period: 'AM',
-                  title: 'The front desk opens.',
-                  text: 'Anitha types the last four digits of a phone number, picks the right family member, records BP and issues a token. Under ten seconds.',
-                  screen: (
-                    <>
-                <Panel className="overflow-hidden">
-                  <div className="flex items-center gap-2 border-b border-line px-4 py-3 text-[14px]">
-                    <IconSearch className="h-4 w-4 text-subtle" />
-                    <span className="tnum">2345</span>
-                  </div>
-                  {(
-                    [
-                      ['RN', 'Rahul Nair', '98470 12345 · 52 yrs', 'blue'],
-                      ['MN', 'Meera Nair', '98470 12345 · 47 yrs', 'violet'],
-                    ] as const
-                  ).map(([a, n, m, tone], i) => (
-                    <div key={n} className={`flex items-center gap-3 px-4 py-3 ${i === 0 ? 'bg-surface-2' : ''}`}>
-                      <Av i={a} tone={tone} />
-                      <div className="flex-1">
-                        <p className="text-[13.5px] font-medium">{n}</p>
-                        <p className="text-[12px] text-muted">{m}</p>
-                      </div>
-                      {i === 0 && <span className="rounded-md bg-brand px-2.5 py-1 text-[11.5px] font-semibold text-[var(--brand-contrast)]">Token 15</span>}
-                    </div>
-                  ))}
-                </Panel>
-                    </>
-                  ),
-                },
-                {
-                  time: '9:40',
-                  period: 'AM',
-                  title: 'The doctor sees the whole story.',
-                  text: 'Last visit, current medicines, last month’s HbA1c. Start typing a medicine and Nadi flags an allergy before it becomes a problem.',
-                  screen: (
-                    <>
-                <Panel className="p-4">
-                  <p className="text-[12px] text-muted">Prescription</p>
-                  <div className="mt-2 flex justify-between rounded-lg border border-line px-3 py-2.5 text-[13.5px]">
-                    Tab. Metformin 500 <span className="text-[12.5px] text-muted tnum">1-0-1</span>
-                  </div>
-                  <div className="mt-2 rounded-lg border-2 border-[var(--fg)] px-3 py-2 text-[13.5px]">Co-trimoxazole</div>
-                  <div className="mt-3 flex gap-2.5 rounded-lg bg-[#fdecea] px-3 py-2.5 text-[13px] text-danger">
-                    <IconAlert className="mt-0.5 h-4 w-4 shrink-0" />
-                    <span>
-                      <span className="font-semibold">Sulfa allergy on record.</span> Co-trimoxazole contains a sulfonamide.
-                    </span>
-                  </div>
-                </Panel>
-                    </>
-                  ),
-                },
-                {
-                  time: '9:48',
-                  period: 'AM',
-                  title: 'Paid before he reaches the door.',
-                  text: 'The consultation fee is recorded. Cash, UPI or card confirmed — and his prescription arrives on WhatsApp in Malayalam.',
-                  screen: (
-                    <>
-                <div className="grid grid-cols-[auto_1fr] items-center gap-4">
-                  <Panel className="p-3">
-                    <svg viewBox="0 0 21 21" className="h-[108px] w-[108px]" shapeRendering="crispEdges">
-                      {QR_ROWS.flatMap((row, y) =>
-                        row.split('').map((c, x) => (c === '1' ? <rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" style={{ fill: 'var(--fg)' }} /> : null))
-                      )}
-                    </svg>
-                  </Panel>
-                  <div className="flex flex-col gap-2">
-                    <Panel className="px-4 py-3">
-                      <p className="text-[12px] text-muted">Consultation · Rahul Nair</p>
-                      <p className="text-[26px] font-bold tracking-[-0.03em] tnum">₹500</p>
-                      <p className="mt-0.5 flex items-center gap-1.5 text-[12.5px] font-medium text-success">
-                        <IconCheck className="h-3.5 w-3.5" /> Paid via UPI
-                      </p>
-                    </Panel>
-                    <Panel className="flex items-center gap-1.5 px-4 py-2.5 text-[12.5px] text-muted">
-                      <IconMessage className="h-3.5 w-3.5" /> Rx sent on WhatsApp
-                    </Panel>
-                  </div>
-                </div>
-                    </>
-                  ),
-                },
-                {
-                  time: '1:30',
-                  period: 'PM',
-                  title: 'Reports file themselves.',
-                  text: 'A patient drops off a scan from the lab downstairs. One photo — sharpened, compressed and filed under the right patient and date.',
-                  screen: (
-                    <>
-                <Panel className="overflow-hidden">
-                  {[
-                    ['Lipid profile — City Lab', 'Lab report · 11 Nov · 212 KB'],
-                    ['Chest X-ray, PA view', 'Scan · 9 Nov · 340 KB'],
-                    ['Discharge summary', 'Hospital · 2 Oct · 188 KB'],
-                  ].map(([t, m]) => (
-                    <div key={t} className="flex items-center gap-3 border-b border-line px-4 py-3 last:border-0">
-                      <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-soft text-brand-ink">
-                        <IconFile className="h-4 w-4" />
-                      </span>
-                      <div>
-                        <p className="text-[13.5px] font-medium">{t}</p>
-                        <p className="text-[12px] text-muted">{m}</p>
-                      </div>
-                    </div>
-                  ))}
-                </Panel>
-                    </>
-                  ),
-                },
-                {
-                  time: '8:45',
-                  period: 'PM',
-                  title: 'Closing takes two minutes.',
-                  text: 'Collections by doctor and by UPI or cash, the day’s expenses, net cash in the drawer — and tomorrow’s follow-ups already reminded.',
-                  screen: (
-                    <>
-                <Panel className="p-5">
-                  <div className="grid grid-cols-3 gap-3">
-                    {[
-                      ['Collected', '₹18,400'],
-                      ['Expenses', '₹1,250'],
-                      ['Net cash', '₹17,150'],
-                    ].map(([l, v]) => (
-                      <div key={l}>
-                        <p className="text-[11.5px] text-muted">{l}</p>
-                        <p className="text-[19px] font-bold tracking-[-0.03em] tnum">{v}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-4 flex h-2 gap-[2px]">
-                    <span className="rounded-l-full bg-[var(--fg)]" style={{ width: '68%' }} />
-                    <span className="bg-[var(--accent-2)]" style={{ width: '26%' }} />
-                    <span className="rounded-r-full bg-[var(--ghost-2)]" style={{ width: '6%' }} />
-                  </div>
-                  <p className="mt-2 text-[12px] text-muted">UPI 68% · Cash 26% · Card 6%</p>
-                  <div className="mt-4 flex items-center gap-2 border-t border-line pt-3 text-[13px]">
-                    <IconFollowUp className="h-4 w-4 text-muted" />
-                    12 follow-ups tomorrow · reminders sent
-                  </div>
-                </Panel>
-                    </>
-                  ),
-                },
+                  {
+                    time: '9:02',
+                    period: 'AM',
+                    title: 'The front desk opens.',
+                    text: 'Anitha types the last four digits of a phone number, picks the right family member, records BP and issues a token. Under ten seconds.',
+                    screen: (
+                      <>
+                        <Panel className="overflow-hidden">
+                          <div className="flex items-center gap-2 border-b border-line px-4 py-3 text-[14px]">
+                            <IconSearch className="h-4 w-4 text-subtle" />
+                            <span className="tnum">2345</span>
+                          </div>
+                          {(
+                            [
+                              ['RN', 'Rahul Nair', '98470 12345 · 52 yrs', 'blue'],
+                              ['MN', 'Meera Nair', '98470 12345 · 47 yrs', 'violet'],
+                            ] as const
+                          ).map(([a, n, m, tone], i) => (
+                            <div key={n} className={`flex items-center gap-3 px-4 py-3 ${i === 0 ? 'bg-surface-2' : ''}`}>
+                              <Av i={a} tone={tone} />
+                              <div className="flex-1">
+                                <p className="text-[13.5px] font-medium">{n}</p>
+                                <p className="text-[12px] text-muted">{m}</p>
+                              </div>
+                              {i === 0 && <span className="rounded-md bg-brand px-2.5 py-1 text-[11.5px] font-semibold text-[var(--brand-contrast)]">Token 15</span>}
+                            </div>
+                          ))}
+                        </Panel>
+                      </>
+                    ),
+                  },
+                  {
+                    time: '9:40',
+                    period: 'AM',
+                    title: 'The doctor sees the whole story.',
+                    text: 'Last visit, current medicines, last month’s HbA1c. Start typing a medicine and Nadi flags an allergy before it becomes a problem.',
+                    screen: (
+                      <>
+                        <Panel className="p-4">
+                          <p className="text-[12px] text-muted">Prescription</p>
+                          <div className="mt-2 flex justify-between rounded-lg border border-line px-3 py-2.5 text-[13.5px]">
+                            Tab. Metformin 500 <span className="text-[12.5px] text-muted tnum">1-0-1</span>
+                          </div>
+                          <div className="mt-2 rounded-lg border-2 border-[var(--fg)] px-3 py-2 text-[13.5px]">Co-trimoxazole</div>
+                          <div className="mt-3 flex gap-2.5 rounded-lg bg-[#fdecea] px-3 py-2.5 text-[13px] text-danger">
+                            <IconAlert className="mt-0.5 h-4 w-4 shrink-0" />
+                            <span>
+                              <span className="font-semibold">Sulfa allergy on record.</span> Co-trimoxazole contains a sulfonamide.
+                            </span>
+                          </div>
+                        </Panel>
+                      </>
+                    ),
+                  },
+                  {
+                    time: '9:48',
+                    period: 'AM',
+                    title: 'Paid before he reaches the door.',
+                    text: 'The consultation fee is recorded. Cash, UPI or card confirmed — and his prescription arrives on WhatsApp in Malayalam.',
+                    screen: (
+                      <>
+                        <div className="grid grid-cols-[auto_1fr] items-center gap-4">
+                          <Panel className="p-3">
+                            <svg viewBox="0 0 21 21" className="h-[108px] w-[108px]" shapeRendering="crispEdges">
+                              {QR_ROWS.flatMap((row, y) =>
+                                row.split('').map((c, x) => (c === '1' ? <rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" style={{ fill: 'var(--fg)' }} /> : null))
+                              )}
+                            </svg>
+                          </Panel>
+                          <div className="flex flex-col gap-2">
+                            <Panel className="px-4 py-3">
+                              <p className="text-[12px] text-muted">Consultation · Rahul Nair</p>
+                              <p className="text-[26px] font-bold tracking-[-0.03em] tnum">₹500</p>
+                              <p className="mt-0.5 flex items-center gap-1.5 text-[12.5px] font-medium text-success">
+                                <IconCheck className="h-3.5 w-3.5" /> Paid via UPI
+                              </p>
+                            </Panel>
+                            <Panel className="flex items-center gap-1.5 px-4 py-2.5 text-[12.5px] text-muted">
+                              <IconMessage className="h-3.5 w-3.5" /> Rx sent on WhatsApp
+                            </Panel>
+                          </div>
+                        </div>
+                      </>
+                    ),
+                  },
+                  {
+                    time: '1:30',
+                    period: 'PM',
+                    title: 'Reports file themselves.',
+                    text: 'A patient drops off a scan from the lab downstairs. One photo — sharpened, compressed and filed under the right patient and date.',
+                    screen: (
+                      <>
+                        <Panel className="overflow-hidden">
+                          {[
+                            ['Lipid profile — City Lab', 'Lab report · 11 Nov · 212 KB'],
+                            ['Chest X-ray, PA view', 'Scan · 9 Nov · 340 KB'],
+                            ['Discharge summary', 'Hospital · 2 Oct · 188 KB'],
+                          ].map(([t, m]) => (
+                            <div key={t} className="flex items-center gap-3 border-b border-line px-4 py-3 last:border-0">
+                              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-soft text-brand-ink">
+                                <IconFile className="h-4 w-4" />
+                              </span>
+                              <div>
+                                <p className="text-[13.5px] font-medium">{t}</p>
+                                <p className="text-[12px] text-muted">{m}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </Panel>
+                      </>
+                    ),
+                  },
+                  {
+                    time: '8:45',
+                    period: 'PM',
+                    title: 'Closing takes two minutes.',
+                    text: 'Collections by doctor and by UPI or cash, the day’s expenses, net cash in the drawer — and tomorrow’s follow-ups already reminded.',
+                    screen: (
+                      <>
+                        <Panel className="p-5">
+                          <div className="grid grid-cols-3 gap-3">
+                            {[
+                              ['Collected', '₹18,400'],
+                              ['Expenses', '₹1,250'],
+                              ['Net cash', '₹17,150'],
+                            ].map(([l, v]) => (
+                              <div key={l}>
+                                <p className="text-[11.5px] text-muted">{l}</p>
+                                <p className="text-[19px] font-bold tracking-[-0.03em] tnum">{v}</p>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="mt-4 flex h-2 gap-[2px]">
+                            <span className="rounded-l-full bg-[var(--fg)]" style={{ width: '68%' }} />
+                            <span className="bg-[var(--accent-2)]" style={{ width: '26%' }} />
+                            <span className="rounded-r-full bg-[var(--ghost-2)]" style={{ width: '6%' }} />
+                          </div>
+                          <p className="mt-2 text-[12px] text-muted">UPI 68% · Cash 26% · Card 6%</p>
+                          <div className="mt-4 flex items-center gap-2 border-t border-line pt-3 text-[13px]">
+                            <IconFollowUp className="h-4 w-4 text-muted" />
+                            12 follow-ups tomorrow · reminders sent
+                          </div>
+                        </Panel>
+                      </>
+                    ),
+                  },
                 ]}
               />
             </div>

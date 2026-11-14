@@ -14,11 +14,14 @@ import {
   isDoctorRole,
   PLAN_DEFAULTS,
   PLAN_ORDER,
+  yearlyPriceInr,
 } from '@/lib/plans';
+import { createPlanUpgradeWhatsAppUrl } from '@/lib/whatsapp';
 import type { InfrastructureStatus } from '@/lib/supabase';
 import { resolveThemeAccent, THEME_PRESETS } from '@/lib/themes';
 import { ThemeSwitcher } from './AppShell';
 import {
+  IconAlert,
   IconBuilding,
   IconCheck,
   IconCopy,
@@ -26,6 +29,7 @@ import {
   IconExternal,
   IconLock,
   IconLogout,
+  IconMessage,
   IconPalette,
   IconPatients,
   IconPill,
@@ -34,7 +38,7 @@ import {
   IconTrash,
   IconUser,
 } from './Icons';
-import { apiJson, Avatar, Badge, EmptyState, PageHeader, toast } from './ui';
+import { apiJson, Avatar, Badge, EmptyState, Modal, PageHeader, toast } from './ui';
 
 export interface SettingsMemberItem {
   id: string;
@@ -1205,6 +1209,7 @@ function PlanTab({
   const isOwner = user.role === 'OWNER_DOCTOR';
   const current = getPlanDefinition(user.clinic.planTier);
   const [switching, setSwitching] = useState<PlanTier | null>(null);
+  const [selectedPlanForAction, setSelectedPlanForAction] = useState<PlanTier | null>(null);
   const docs = members.filter((m) => m.isActive && isDoctorRole(m.role)).length;
   const staff = members.filter((m) => m.isActive && m.role === 'STAFF').length;
 
@@ -1213,6 +1218,7 @@ function PlanTab({
     const r = await apiJson('/api/clinic/plan', { body: { planTier: tier } });
     setSwitching(null);
     if (!r.ok) return toast(r.error, { tone: 'error' });
+    setSelectedPlanForAction(null);
     toast(`Switched to ${PLAN_DEFAULTS[tier].label}`);
     router.refresh();
   }
@@ -1227,6 +1233,18 @@ function PlanTab({
 
   return (
     <div className="flex flex-col gap-6">
+      {selectedPlanForAction && (
+        <PlanUpgradeModal
+          user={user}
+          targetTier={selectedPlanForAction}
+          docs={docs}
+          staff={staff}
+          onClose={() => setSelectedPlanForAction(null)}
+          onConfirmTrialSwitch={switchPlan}
+          switching={switching !== null}
+        />
+      )}
+
       <Section
         title={`${current.label}`}
         description={
@@ -1287,10 +1305,10 @@ function PlanTab({
                 <button
                   type="button"
                   disabled={isCurrent || switching !== null}
-                  onClick={() => void switchPlan(tier)}
+                  onClick={() => setSelectedPlanForAction(tier)}
                   className={`btn mt-5 w-full ${isCurrent ? 'btn-secondary' : 'btn-primary'}`}
                 >
-                  {isCurrent ? 'Your plan' : switching === tier ? 'Switching…' : `Switch to ${p.shortName}`}
+                  {isCurrent ? 'Your plan' : switching === tier ? 'Updating…' : `Switch to ${p.shortName}`}
                 </button>
               )}
             </article>
@@ -1298,6 +1316,164 @@ function PlanTab({
         })}
       </div>
     </div>
+  );
+}
+
+function PlanUpgradeModal({
+  user,
+  targetTier,
+  docs,
+  staff,
+  onClose,
+  onConfirmTrialSwitch,
+  switching,
+}: {
+  user: SessionUser;
+  targetTier: PlanTier;
+  docs: number;
+  staff: number;
+  onClose: () => void;
+  onConfirmTrialSwitch: (tier: PlanTier) => Promise<void>;
+  switching: boolean;
+}) {
+  const target = PLAN_DEFAULTS[targetTier];
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
+
+  const currentIndex = PLAN_ORDER.indexOf(user.clinic.planTier);
+  const targetIndex = PLAN_ORDER.indexOf(targetTier);
+  const isDowngrade = targetIndex < currentIndex;
+  const isTrial = user.clinic.subscriptionStatus === 'TRIAL';
+
+  const monthlyPrice = target.monthlyPriceInr;
+  const yearlyPrice = yearlyPriceInr(targetTier);
+  const monthlySavings = monthlyPrice * 12 - yearlyPrice;
+  const effectivePrice = billingCycle === 'yearly' ? yearlyPrice : monthlyPrice;
+
+  const upgradeWaUrl = createPlanUpgradeWhatsAppUrl({
+    clinicName: user.clinic.name,
+    clinicSlug: user.clinic.slug,
+    doctorName: user.name,
+    planName: target.label,
+    interval: billingCycle,
+    amountInr: effectivePrice,
+  });
+
+  return (
+    <Modal
+      open={true}
+      onClose={onClose}
+      title={isDowngrade ? `Downgrade to ${target.shortName}` : `Upgrade to ${target.shortName}`}
+      description={target.tagline}
+      size="md"
+      footer={
+        <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <button type="button" onClick={onClose} disabled={switching} className="btn btn-secondary">
+            Cancel
+          </button>
+          {isTrial && (
+            <button
+              type="button"
+              disabled={switching}
+              onClick={() => void onConfirmTrialSwitch(targetTier)}
+              className="btn btn-secondary text-brand"
+            >
+              {switching ? 'Updating trial…' : 'Test in Trial (Free)'}
+            </button>
+          )}
+          <a
+            href={upgradeWaUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-primary flex items-center justify-center gap-1.5"
+          >
+            <IconMessage className="h-4 w-4" />
+            <span>{isTrial ? 'Activate Paid Plan' : `Upgrade (₹${effectivePrice.toLocaleString('en-IN')})`}</span>
+          </a>
+        </div>
+      }
+    >
+      <div className="flex flex-col gap-4">
+        {/* Billing cycle toggle */}
+        <div className="flex gap-1 rounded-[var(--r-card)] border border-line bg-surface-2 p-1.5">
+          <button
+            type="button"
+            onClick={() => setBillingCycle('monthly')}
+            className={`flex-1 rounded-[var(--r-control)] py-1.5 text-center text-[13px] font-medium transition-colors ${
+              billingCycle === 'monthly' ? 'bg-surface text-fg shadow-xs' : 'text-muted hover:text-fg'
+            }`}
+          >
+            Monthly (₹{monthlyPrice.toLocaleString('en-IN')}/mo)
+          </button>
+          <button
+            type="button"
+            onClick={() => setBillingCycle('yearly')}
+            className={`flex flex-1 items-center justify-center gap-1.5 rounded-[var(--r-control)] py-1.5 text-center text-[13px] font-medium transition-colors ${
+              billingCycle === 'yearly' ? 'bg-surface text-fg shadow-xs' : 'text-muted hover:text-fg'
+            }`}
+          >
+            <span>Yearly (₹{yearlyPrice.toLocaleString('en-IN')}/yr)</span>
+            <span className="badge badge-success px-1.5 py-0.5 text-[10.5px]">2 Mos Free</span>
+          </button>
+        </div>
+
+        {billingCycle === 'yearly' && monthlySavings > 0 && (
+          <div className="flex items-center gap-1.5 text-[12.5px] font-medium text-success">
+            <IconCheck className="h-3.5 w-3.5" />
+            <span>Save ₹{monthlySavings.toLocaleString('en-IN')} with annual billing (get 2 months free)</span>
+          </div>
+        )}
+
+        {/* Plan comparison specs */}
+        <div className="flex flex-col gap-2.5 rounded-[var(--r-card)] border border-line bg-surface p-4 text-[13px]">
+          <div className="flex justify-between border-b border-line/60 py-1">
+            <span className="text-muted">Doctor logins</span>
+            <span className="font-medium">{target.maxDoctors >= 999 ? 'Unlimited' : target.maxDoctors}</span>
+          </div>
+          <div className="flex justify-between border-b border-line/60 py-1">
+            <span className="text-muted">Front-desk staff logins</span>
+            <span className="font-medium">{target.maxStaff >= 999 ? 'Unlimited' : target.maxStaff}</span>
+          </div>
+          <div className="flex justify-between border-b border-line/60 py-1">
+            <span className="text-muted">Cloud photo & report storage</span>
+            <span className="font-medium">{formatStorageMb(target.maxStorageMb)}</span>
+          </div>
+          <div className="flex justify-between py-1">
+            <span className="text-muted">Clinic branches</span>
+            <span className="font-medium">{target.maxBranches}</span>
+          </div>
+        </div>
+
+        {/* Warning if downgrade */}
+        {isDowngrade && (
+          <div role="alert" className="alert alert-warning text-[12.5px]">
+            <IconAlert className="h-4 w-4 shrink-0" />
+            <div>
+              <strong>Downgrade Notice:</strong> Your limits will reduce to {target.label}. Ensure your current active doctors ({docs}) and staff ({staff}) do not exceed this tier&apos;s limit.
+            </div>
+          </div>
+        )}
+
+        {/* Trial note or payment instructions */}
+        {isTrial ? (
+          <div className="flex flex-col gap-1 rounded-[var(--r-control)] bg-brand-softer p-3 text-[12.5px] text-brand-dark">
+            <div className="flex items-center gap-1.5 font-semibold">
+              <span>Trial Status</span>
+              <span className="badge badge-brand text-[11px]">{user.clinic.trialDaysLeft ?? 14} days remaining</span>
+            </div>
+            <p className="leading-relaxed text-muted">
+              You can test all {target.shortName} features for free until your trial concludes. To activate your paid subscription with a GST tax invoice, click <strong>Activate Paid Plan</strong>.
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-1.5 rounded-[var(--r-control)] bg-surface-2 p-3 text-[12px] text-muted">
+            <div className="font-semibold text-fg">Direct UPI & Tax Invoice Activation</div>
+            <p>
+              Clicking below opens a verified WhatsApp chat with our billing team. Share your clinic details, receive a formal B2B GST tax invoice, and complete payment via UPI / NetBanking.
+            </p>
+          </div>
+        )}
+      </div>
+    </Modal>
   );
 }
 

@@ -100,3 +100,33 @@ export function buildVisitSummaryMessage(params: {
 
   return lines.join('\n');
 }
+
+export function createPlanUpgradeWhatsAppUrl(params: {
+  clinicName: string;
+  clinicSlug: string;
+  doctorName?: string;
+  planName: string;
+  interval: 'monthly' | 'yearly';
+  amountInr: number;
+  supportPhone?: string;
+}): string {
+  const supportPhone =
+    params.supportPhone ||
+    process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP ||
+    '919400000000';
+
+  const intervalLabel = params.interval === 'yearly' ? 'Yearly (2 Months Free)' : 'Monthly';
+  const lines = [
+    `Hi Nadi Team,`,
+    `I would like to activate/upgrade subscription for my clinic:`,
+    `*Clinic:* ${params.clinicName}`,
+    `*Clinic Code:* ${params.clinicSlug}`,
+    params.doctorName ? `*Doctor:* ${params.doctorName}` : null,
+    `*Selected Plan:* ${params.planName} (${intervalLabel})`,
+    `*Amount:* ₹${params.amountInr.toLocaleString('en-IN')}`,
+    ``,
+    `Please share the GST invoice & UPI payment details to complete activation.`,
+  ].filter((l): l is string => Boolean(l));
+
+  return buildWhatsAppLink(supportPhone, lines.join('\n'));
+}

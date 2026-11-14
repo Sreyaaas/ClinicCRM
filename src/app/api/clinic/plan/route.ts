@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { ApiError, handleApiError, parseJsonBody, requireApiUser } from '@/lib/api';
 import { recordAuditLog } from '@/lib/audit';
-import { PLAN_DEFAULTS, TRIAL_MS } from '@/lib/plans';
+import { PLAN_DEFAULTS, TRIAL_MS, isSubscriptionActive } from '@/lib/plans';
 import { prisma } from '@/lib/prisma';
 
 const switchPlanSchema = z.object({
@@ -66,6 +66,56 @@ export async function POST(request: Request) {
 
     const body = await parseJsonBody(request, switchPlanSchema);
     const nextPlan = PLAN_DEFAULTS[body.planTier];
+
+    // Check if subscription or trial is active
+    if (!isSubscriptionActive(user.clinic.subscriptionStatus, user.clinic.trialEndsAt)) {
+      throw new ApiError(
+        402,
+        'Your clinic subscription or trial has expired. Please contact billing to activate your plan.',
+        'SUBSCRIPTION_EXPIRED'
+      );
+    }
+
+    // Capacity validation (prevents broken state if downgrading)
+    const [activeDoctors, activeStaff, activeBranches] = await Promise.all([
+      prisma.user.count({
+        where: {
+          clinicId: user.clinicId,
+          isActive: true,
+          role: { in: ['OWNER_DOCTOR', 'DOCTOR'] },
+        },
+      }),
+      prisma.user.count({
+        where: { clinicId: user.clinicId, isActive: true, role: 'STAFF' },
+      }),
+      prisma.branch.count({
+        where: { clinicId: user.clinicId, isActive: true },
+      }),
+    ]);
+
+    if (activeDoctors > nextPlan.maxDoctors) {
+      throw new ApiError(
+        400,
+        `Cannot switch to ${nextPlan.label}: your clinic has ${activeDoctors} active doctor(s), but ${nextPlan.label} allows a maximum of ${nextPlan.maxDoctors}. Please deactivate extra doctors first in Settings -> Team.`,
+        'CAPACITY_EXCEEDED'
+      );
+    }
+
+    if (activeStaff > nextPlan.maxStaff) {
+      throw new ApiError(
+        400,
+        `Cannot switch to ${nextPlan.label}: your clinic has ${activeStaff} active staff member(s), but ${nextPlan.label} allows a maximum of ${nextPlan.maxStaff}. Please deactivate extra staff first in Settings -> Team.`,
+        'CAPACITY_EXCEEDED'
+      );
+    }
+
+    if (activeBranches > nextPlan.maxBranches) {
+      throw new ApiError(
+        400,
+        `Cannot switch to ${nextPlan.label}: your clinic has ${activeBranches} active branch(es), but ${nextPlan.label} allows a maximum of ${nextPlan.maxBranches}.`,
+        'CAPACITY_EXCEEDED'
+      );
+    }
 
     const updatedClinic = await prisma.clinic.update({
       where: { id: user.clinicId },
