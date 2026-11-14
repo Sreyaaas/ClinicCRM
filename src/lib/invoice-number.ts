@@ -12,5 +12,17 @@ export async function generateNextInvoiceNumber(tx: TxClient, clinicId: string):
       invoiceNumber: { startsWith: prefix },
     },
   });
-  return `${prefix}${String(count + 1).padStart(4, '0')}`;
+
+  let nextNum = count + 1;
+  let candidate = `${prefix}${String(nextNum).padStart(4, '0')}`;
+  while (
+    (await tx.billingRecord.count({
+      where: { clinicId, invoiceNumber: candidate },
+    })) > 0
+  ) {
+    nextNum++;
+    candidate = `${prefix}${String(nextNum).padStart(4, '0')}`;
+  }
+
+  return candidate;
 }

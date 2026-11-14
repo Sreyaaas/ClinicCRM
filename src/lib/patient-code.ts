@@ -5,9 +5,10 @@ export async function generateNextPatientCode(
   tx: Prisma.TransactionClient,
   clinicId: string
 ): Promise<string> {
+  // Sort by patientCode descending so we always read the highest allocated numerical code
   const latest = await tx.patient.findFirst({
     where: { clinicId },
-    orderBy: { createdAt: 'desc' },
+    orderBy: [{ patientCode: 'desc' }, { createdAt: 'desc' }],
     select: { patientCode: true },
   });
 
@@ -22,5 +23,12 @@ export async function generateNextPatientCode(
     nextNum = count + 1;
   }
 
-  return `PT-${String(nextNum).padStart(4, '0')}`;
+  // Ensure uniqueness in case of duplicate timestamps or concurrent creates
+  let candidate = `PT-${String(nextNum).padStart(4, '0')}`;
+  while ((await tx.patient.count({ where: { clinicId, patientCode: candidate } })) > 0) {
+    nextNum++;
+    candidate = `PT-${String(nextNum).padStart(4, '0')}`;
+  }
+
+  return candidate;
 }
