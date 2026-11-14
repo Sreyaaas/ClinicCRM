@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { PageSkeleton } from '@/components/PageSkeleton';
 import { PublicBookingClient } from '@/components/PublicBookingClient';
-import { getIstDayString } from '@/lib/date';
+import { getIstDayString, getIstHhmm } from '@/lib/date';
 import { getPlanFeatures, isSubscriptionActive } from '@/lib/plans';
 import { prisma } from '@/lib/prisma';
 import { resolveThemeAccent } from '@/lib/themes';
@@ -54,6 +54,23 @@ async function BookingLoader({ params }: { params: Promise<{ slug: string }> }) 
     );
   }
 
+  const todayIst = getIstDayString();
+  const weekStart = new Date(`${todayIst}T00:00:00.000+05:30`);
+  const weekEnd = new Date(weekStart.getTime() + 8 * 24 * 60 * 60 * 1000);
+
+  const activeAppointments = await prisma.appointment.findMany({
+    where: {
+      clinicId: clinic.id,
+      status: { in: ['SCHEDULED', 'CONFIRMED', 'CHECKED_IN'] },
+      scheduledAt: { gte: weekStart, lt: weekEnd },
+    },
+    select: { doctorId: true, scheduledAt: true },
+  });
+
+  const initialBookedSlots = activeAppointments.map(
+    (a) => `${a.doctorId}_${getIstDayString(a.scheduledAt)}_${getIstHhmm(a.scheduledAt)}`
+  );
+
   return (
     <PublicBookingClient
       clinic={{
@@ -66,7 +83,8 @@ async function BookingLoader({ params }: { params: Promise<{ slug: string }> }) 
         brandColor: resolveThemeAccent(clinic),
       }}
       doctors={clinic.users}
-      todayIst={getIstDayString()}
+      todayIst={todayIst}
+      initialBookedSlots={initialBookedSlots}
     />
   );
 }

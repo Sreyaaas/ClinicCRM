@@ -5,6 +5,7 @@ import { assertRateLimit } from '@/lib/rate-limit';
 import { generateNextPatientCode } from '@/lib/patient-code';
 import { getPlanFeatures, isSubscriptionActive } from '@/lib/plans';
 import { prisma } from '@/lib/prisma';
+import { getSlotLockKey } from '@/lib/slot-lock';
 
 const publicBookSchema = z.object({
   clinicSlug: z.string().trim().min(2).max(100),
@@ -72,24 +73,35 @@ export async function POST(request: Request) {
       throw new ApiError(400, 'Invalid date or time slot.', 'INVALID_DATETIME');
     }
 
-    const slotConflict = await prisma.appointment.findFirst({
-      where: {
-        clinicId: clinic.id,
-        doctorId: doctor.id,
-        status: { in: ['SCHEDULED', 'CONFIRMED', 'CHECKED_IN'] },
-        scheduledAt: {
-          gte: new Date(scheduledAt.getTime() - 10 * 60 * 1000),
-          lt: new Date(scheduledAt.getTime() + clinic.slotDurationMin * 60 * 1000),
-        },
-      },
-      select: { id: true },
-    });
-
-    if (slotConflict) {
-      throw new ApiError(409, 'That slot is already taken. Please pick another time.', 'SLOT_TAKEN');
-    }
+    const lockKey = getSlotLockKey(doctor.id, scheduledAt);
 
     const appointment = await prisma.$transaction(async (tx) => {
+      // 1. Acquire transaction advisory lock for this doctor and slot
+      // Serializes concurrent requests for the same slot into a FIFO queue.
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(${lockKey}::bigint);`;
+
+      // 2. Re-check slot conflict inside the locked transaction
+      const slotConflict = await tx.appointment.findFirst({
+        where: {
+          clinicId: clinic.id,
+          doctorId: doctor.id,
+          status: { in: ['SCHEDULED', 'CONFIRMED', 'CHECKED_IN'] },
+          scheduledAt: {
+            gte: new Date(scheduledAt.getTime() - 10 * 60 * 1000),
+            lt: new Date(scheduledAt.getTime() + clinic.slotDurationMin * 60 * 1000),
+          },
+        },
+        select: { id: true },
+      });
+
+      if (slotConflict) {
+        throw new ApiError(
+          409,
+          'That slot was just booked by another patient. Please pick another time.',
+          'SLOT_TAKEN'
+        );
+      }
+
       let patient = await tx.patient.findFirst({
         where: {
           clinicId: clinic.id,
@@ -146,7 +158,16 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ booking: appointment }, { status: 201 });
-  } catch (error) {
+  } catch (error: unknown) {
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2002') {
+      return handleApiError(
+        new ApiError(
+          409,
+          'That slot was just booked by another patient. Please pick another time.',
+          'SLOT_TAKEN'
+        )
+      );
+    }
     return handleApiError(error);
   }
 }

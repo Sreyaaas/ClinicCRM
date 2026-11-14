@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { ApiError, handleApiError, parseJsonBody, requireApiUser, requirePlanFeature } from '@/lib/api';
-import { recordAuditLog } from '@/lib/audit';
 import { getIstDayBounds, getIstDayString } from '@/lib/date';
 import { isDoctorRole } from '@/lib/plans';
 import { prisma } from '@/lib/prisma';
+import { getSlotLockKey } from '@/lib/slot-lock';
 
 const createAppointmentSchema = z.object({
   patientId: z.string().uuid(),
@@ -90,59 +90,80 @@ export async function POST(request: Request) {
     if (!patient) throw new ApiError(404, 'Patient not found.', 'PATIENT_NOT_FOUND');
     if (!doctor) throw new ApiError(404, 'Doctor not found.', 'DOCTOR_NOT_FOUND');
 
-    const windowStart = new Date(scheduledAt.getTime() - 10 * 60 * 1000);
-    const windowEnd = new Date(scheduledAt.getTime() + body.durationMinutes * 60 * 1000);
-    const conflict = await prisma.appointment.findFirst({
-      where: {
-        clinicId: user.clinicId,
-        doctorId: doctor.id,
-        status: { in: ['SCHEDULED', 'CONFIRMED', 'CHECKED_IN'] },
-        scheduledAt: { gte: windowStart, lt: windowEnd },
-      },
-      select: { id: true },
-    });
+    const lockKey = getSlotLockKey(doctor.id, scheduledAt);
 
-    if (conflict) {
-      throw new ApiError(
-        409,
-        'Doctor already has an appointment around that slot time. Pick another slot.',
-        'SLOT_CONFLICT'
-      );
-    }
+    const appointment = await prisma.$transaction(async (tx) => {
+      // 1. Serialize concurrent booking attempts for this doctor & slot
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(${lockKey}::bigint);`;
 
-    const appointment = await prisma.appointment.create({
-      data: {
-        clinicId: user.clinicId,
-        branchId: body.branchId ?? user.activeBranchId ?? null,
-        patientId: patient.id,
-        doctorId: doctor.id,
-        scheduledAt,
-        durationMinutes: body.durationMinutes,
-        reason: body.reason || null,
-        notes: body.notes || null,
-        status: 'SCHEDULED',
-      },
-      include: {
-        patient: {
-          select: { id: true, patientCode: true, name: true, phone: true, ageYears: true, gender: true },
+      // 2. Re-check slot conflict inside locked transaction
+      const windowStart = new Date(scheduledAt.getTime() - 10 * 60 * 1000);
+      const windowEnd = new Date(scheduledAt.getTime() + body.durationMinutes * 60 * 1000);
+      const conflict = await tx.appointment.findFirst({
+        where: {
+          clinicId: user.clinicId,
+          doctorId: doctor.id,
+          status: { in: ['SCHEDULED', 'CONFIRMED', 'CHECKED_IN'] },
+          scheduledAt: { gte: windowStart, lt: windowEnd },
         },
-        doctor: { select: { id: true, name: true, specialty: true, consultationFee: true } },
-        branch: { select: { id: true, name: true, code: true } },
-      },
-    });
+        select: { id: true },
+      });
 
-    await recordAuditLog({
-      clinicId: user.clinicId,
-      actorUserId: user.id,
-      actorName: user.name,
-      action: 'APPOINTMENT_BOOKED',
-      entityType: 'Appointment',
-      entityId: appointment.id,
-      summary: `Booked slot for ${patient.name} at ${body.day} ${body.time}`,
+      if (conflict) {
+        throw new ApiError(
+          409,
+          'Doctor already has an appointment around that slot time. Pick another slot.',
+          'SLOT_CONFLICT'
+        );
+      }
+
+      const created = await tx.appointment.create({
+        data: {
+          clinicId: user.clinicId,
+          branchId: body.branchId ?? user.activeBranchId ?? null,
+          patientId: patient.id,
+          doctorId: doctor.id,
+          scheduledAt,
+          durationMinutes: body.durationMinutes,
+          reason: body.reason || null,
+          notes: body.notes || null,
+          status: 'SCHEDULED',
+        },
+        include: {
+          patient: {
+            select: { id: true, patientCode: true, name: true, phone: true, ageYears: true, gender: true },
+          },
+          doctor: { select: { id: true, name: true, specialty: true, consultationFee: true } },
+          branch: { select: { id: true, name: true, code: true } },
+        },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          clinicId: user.clinicId,
+          actorUserId: user.id,
+          actorName: user.name,
+          action: 'APPOINTMENT_BOOKED',
+          entityType: 'Appointment',
+          entityId: created.id,
+          summary: `Booked slot for ${patient.name} at ${body.day} ${body.time}`,
+        },
+      });
+
+      return created;
     });
 
     return NextResponse.json({ appointment }, { status: 201 });
-  } catch (error) {
+  } catch (error: unknown) {
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2002') {
+      return handleApiError(
+        new ApiError(
+          409,
+          'Doctor already has an appointment around that slot time. Pick another slot.',
+          'SLOT_CONFLICT'
+        )
+      );
+    }
     return handleApiError(error);
   }
 }

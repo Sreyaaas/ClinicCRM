@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { formatClockTime, formatIstLongDay } from '@/lib/date';
 import { IconAlert, IconCalendar, IconCheck, IconClock, IconPhone } from './Icons';
 import { Avatar } from './ui';
@@ -21,6 +21,7 @@ export function PublicBookingClient({
   clinic,
   doctors,
   todayIst,
+  initialBookedSlots = [],
 }: {
   clinic: {
     slug: string;
@@ -33,6 +34,7 @@ export function PublicBookingClient({
   };
   doctors: Array<{ id: string; name: string; specialty: string | null; consultationFee: number | null }>;
   todayIst: string;
+  initialBookedSlots?: string[];
 }) {
   const [doctorId, setDoctorId] = useState(doctors[0]?.id ?? '');
   const [day, setDay] = useState(todayIst);
@@ -45,8 +47,31 @@ export function PublicBookingClient({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState<{ patientCode: string; doctorName: string; day: string; time: string } | null>(null);
+  const [bookedKeys, setBookedKeys] = useState<Set<string>>(() => new Set(initialBookedSlots));
 
   const days = Array.from({ length: 7 }, (_, i) => addDays(todayIst, i));
+
+  // Background slot check for selected date & doctor
+  useEffect(() => {
+    if (!doctorId || !day) return;
+    let active = true;
+    fetch(`/api/public/slots?clinicSlug=${encodeURIComponent(clinic.slug)}&doctorId=${encodeURIComponent(doctorId)}&day=${encodeURIComponent(day)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!active || !Array.isArray(data.bookedTimes)) return;
+        setBookedKeys((prev) => {
+          const next = new Set(prev);
+          for (const t of data.bookedTimes) {
+            next.add(`${doctorId}_${day}_${t}`);
+          }
+          return next;
+        });
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [clinic.slug, doctorId, day]);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -74,6 +99,10 @@ export function PublicBookingClient({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
+        if (res.status === 409) {
+          setBookedKeys((prev) => new Set(prev).add(`${doctorId}_${day}_${time}`));
+          setTime('');
+        }
         setError(data.error || 'Could not confirm the booking. Please call the clinic.');
         return;
       }
@@ -211,11 +240,29 @@ export function PublicBookingClient({
                 <IconClock className="h-4 w-4 text-muted" /> Time
               </h2>
               <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                {TIME_SLOTS.map((t) => (
-                  <button key={t} type="button" className="chip h-10 justify-center tnum" aria-pressed={time === t} onClick={() => setTime(t)}>
-                    {fmtTime(t)}
-                  </button>
-                ))}
+                {TIME_SLOTS.map((t) => {
+                  const isBooked = bookedKeys.has(`${doctorId}_${day}_${t}`);
+                  return (
+                    <button
+                      key={t}
+                      type="button"
+                      disabled={isBooked}
+                      aria-disabled={isBooked}
+                      className={`chip h-10 justify-center tnum ${
+                        isBooked ? 'opacity-40 cursor-not-allowed bg-surface-2 line-through text-muted' : ''
+                      }`}
+                      aria-pressed={time === t}
+                      onClick={() => !isBooked && setTime(t)}
+                    >
+                      <span>{fmtTime(t)}</span>
+                      {isBooked && (
+                        <span className="ml-1 text-[10px] font-normal no-underline text-danger opacity-90">
+                          Booked
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
               <p className="text-[12px] text-muted">The clinic will confirm your exact time if needed.</p>
             </section>

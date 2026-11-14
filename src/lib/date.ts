@@ -78,6 +78,12 @@ export function formatIstTime(value: Date | string): string {
   return `${h}:${String(p.minute).padStart(2, '0')} ${p.hour < 12 ? 'AM' : 'PM'}`;
 }
 
+/** "17:30" 24h format in IST. */
+export function getIstHhmm(value: Date | string): string {
+  const p = istParts(value);
+  return `${String(p.hour).padStart(2, '0')}:${String(p.minute).padStart(2, '0')}`;
+}
+
 /** "5:30 PM" from a 24h "HH:MM" string. */
 export function formatClockTime(hhmm: string): string {
   const [hs, ms] = hhmm.split(':');
