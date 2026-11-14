@@ -374,11 +374,12 @@ export function PatientChartClient({
                 <button
                   type="button"
                   onClick={() => setOcrOpen(true)}
-                  className="btn btn-secondary max-sm:flex-1 text-brand-ink border-brand/40 hover:bg-brand-light/50"
-                  title="Snap prescription photo to auto-populate consultation details with Gemini AI"
+                  className="btn btn-secondary max-sm:flex-1 text-brand-ink border-brand/40 hover:bg-brand-light/50 gap-1.5"
+                  title="Snap prescription photo to auto-populate consultation details with Gemini AI (Beta USP)"
                 >
                   <IconSparkle className="text-brand" />
-                  Scan Rx (AI)
+                  <span>Scan Rx (AI)</span>
+                  <span className="badge badge-warning text-[10px] px-1 py-0 font-medium">Beta</span>
                 </button>
                 <button
                   type="button"

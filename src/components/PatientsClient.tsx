@@ -105,11 +105,12 @@ export function PatientsClient({
             <button
               type="button"
               onClick={() => setOcrModalOpen(true)}
-              className="btn btn-secondary text-brand-ink"
-              title="Scan paper prescription with AI"
+              className="btn btn-secondary text-brand-ink gap-1.5"
+              title="Scan paper prescription with AI (Beta USP)"
             >
               <IconSparkle className="text-brand" />
-              Scan Rx (AI)
+              <span>Scan Rx (AI)</span>
+              <span className="badge badge-warning text-[10px] px-1 py-0 font-medium">Beta</span>
             </button>
             <button type="button" onClick={openNewPatient} className="btn btn-primary">
               <IconUserPlus />

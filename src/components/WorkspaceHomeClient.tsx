@@ -611,12 +611,13 @@ export function WorkspaceHomeClient({
             )}
             <button
               type="button"
-              className="btn btn-secondary max-sm:flex-1 text-brand-ink"
+              className="btn btn-secondary max-sm:flex-1 text-brand-ink gap-1.5"
               onClick={() => setOcrModalOpen(true)}
-              title="Scan paper prescription with AI"
+              title="Scan paper prescription with AI (Beta USP)"
             >
               <IconSparkle className="text-brand" />
-              Scan Rx (AI)
+              <span>Scan Rx (AI)</span>
+              <span className="badge badge-warning text-[10px] px-1 py-0 font-medium">Beta</span>
             </button>
             {showQueue ? (
               <button type="button" className="btn btn-primary max-sm:flex-1" onClick={() => setAction('checkin')}>

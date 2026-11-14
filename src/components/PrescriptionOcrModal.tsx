@@ -190,8 +190,14 @@ export function PrescriptionOcrModal({
     <Modal
       open={open}
       onClose={handleClose}
-      title="Instant Prescription OCR (Gemini AI)"
-      description="Upload or snap a photo of any doctor prescription or outpatient slip. Gemini extracts medicines, vitals, diagnosis, and patient details to auto-populate the chart."
+      title={
+        <span className="flex items-center gap-2">
+          <span>Scan Prescription Slip (AI)</span>
+          <span className="badge badge-warning text-[10.5px] px-1.5 py-0.5 font-medium">Beta</span>
+          <span className="badge badge-brand text-[10.5px] px-1.5 py-0.5 font-medium">USP</span>
+        </span>
+      }
+      description="Our signature AI feature (Beta): Snap a photo of any handwritten prescription or OPD slip. Gemini AI reads doctor handwriting, diagnosis, and medicines to auto-fill the chart in seconds. Always review extracted details before printing."
       size="lg"
       closedby="closerequest"
       footer={
@@ -215,7 +221,16 @@ export function PrescriptionOcrModal({
         </>
       }
     >
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-4">
+        {/* USP / Beta banner */}
+        <div className="flex items-center justify-between rounded-[var(--r-control)] bg-brand-softer px-3.5 py-2 text-[12px] text-brand-dark">
+          <div className="flex items-center gap-2">
+            <IconSparkle className="h-4 w-4 shrink-0 text-brand" />
+            <span><strong>Nadi USP:</strong> Instant handwriting &amp; slip digitizer. Currently in public beta for all doctors.</span>
+          </div>
+          <span className="badge badge-warning text-[10px] uppercase font-semibold">Beta</span>
+        </div>
+
         {/* API Key Missing Alert with Inline Configuration */}
         {keyMissing && (
           <div className="rounded-[var(--r-card)] border border-warning/40 bg-warning-light p-4 text-[13px] text-warning-ink">
