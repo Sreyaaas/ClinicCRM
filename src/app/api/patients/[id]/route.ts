@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { ApiError, handleApiError, parseJsonBody, requireApiUser } from '@/lib/api';
+import { recordAuditLog } from '@/lib/audit';
 import { prisma } from '@/lib/prisma';
 
 const updatePatientSchema = z.object({
@@ -108,6 +109,39 @@ export async function PATCH(request: NextRequest, ctx: RouteContext<'/api/patien
     });
 
     return NextResponse.json({ patient });
+  } catch (error) {
+    return handleApiError(error);
+  }
+}
+
+export async function DELETE(_request: NextRequest, ctx: RouteContext<'/api/patients/[id]'>) {
+  try {
+    const user = await requireApiUser({ roles: ['OWNER_DOCTOR'], requireActiveSub: true });
+    const { id } = await ctx.params;
+
+    const existing = await prisma.patient.findFirst({
+      where: { id, clinicId: user.clinicId },
+      select: { id: true, name: true, patientCode: true },
+    });
+    if (!existing) {
+      throw new ApiError(404, 'Patient not found.', 'PATIENT_NOT_FOUND');
+    }
+
+    await prisma.patient.delete({
+      where: { id: existing.id },
+    });
+
+    await recordAuditLog({
+      clinicId: user.clinicId,
+      actorUserId: user.id,
+      actorName: user.name,
+      action: 'PATIENT_DELETED',
+      entityType: 'Patient',
+      entityId: existing.id,
+      summary: `Deleted patient ${existing.name} (${existing.patientCode})`,
+    });
+
+    return NextResponse.json({ ok: true, deletedId: existing.id });
   } catch (error) {
     return handleApiError(error);
   }

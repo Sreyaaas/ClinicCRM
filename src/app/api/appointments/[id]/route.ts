@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { ApiError, handleApiError, parseJsonBody, requireApiUser, requirePlanFeature } from '@/lib/api';
+import { recordAuditLog } from '@/lib/audit';
 import { getIstDayString } from '@/lib/date';
 import { generateNextInvoiceNumber } from '@/lib/invoice-number';
 import { getPlanFeatures } from '@/lib/plans';
@@ -101,6 +102,44 @@ export async function PATCH(
     });
 
     return NextResponse.json({ appointment: updated });
+  } catch (error) {
+    return handleApiError(error);
+  }
+}
+
+export async function DELETE(
+  _request: NextRequest,
+  ctx: RouteContext<'/api/appointments/[id]'>
+) {
+  try {
+    const user = await requireApiUser({ requireActiveSub: true });
+    requirePlanFeature(user, 'appointments');
+    const { id } = await ctx.params;
+
+    const existing = await prisma.appointment.findFirst({
+      where: { id, clinicId: user.clinicId },
+      select: { id: true, patientId: true, scheduledAt: true },
+    });
+
+    if (!existing) {
+      throw new ApiError(404, 'Appointment not found.', 'APPOINTMENT_NOT_FOUND');
+    }
+
+    await prisma.appointment.delete({
+      where: { id: existing.id },
+    });
+
+    await recordAuditLog({
+      clinicId: user.clinicId,
+      actorUserId: user.id,
+      actorName: user.name,
+      action: 'APPOINTMENT_DELETED',
+      entityType: 'Appointment',
+      entityId: existing.id,
+      summary: `Deleted appointment scheduled at ${existing.scheduledAt.toISOString()}`,
+    });
+
+    return NextResponse.json({ ok: true, deletedId: existing.id });
   } catch (error) {
     return handleApiError(error);
   }

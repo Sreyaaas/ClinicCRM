@@ -1,4 +1,3 @@
-import 'server-only';
 import type { Prisma, PrismaClient } from '@prisma/client';
 
 type TxClient = Prisma.TransactionClient | PrismaClient;
