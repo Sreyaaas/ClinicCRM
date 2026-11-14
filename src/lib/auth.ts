@@ -1,4 +1,5 @@
 import 'server-only';
+import { cache } from 'react';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { SignJWT, jwtVerify } from 'jose';
@@ -131,7 +132,7 @@ export async function clearUserSession(): Promise<void> {
   }
 }
 
-export async function getSessionUser(): Promise<SessionUser | null> {
+export const getSessionUser = cache(async function getSessionUser(): Promise<SessionUser | null> {
   const cookieStore = await cookies();
   const { name } = getSessionCookieConfig();
   const rawToken = cookieStore.get(name)?.value ?? cookieStore.get('clinic_session')?.value;
@@ -224,7 +225,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
         : null,
     },
   };
-}
+});
 
 export async function requireSessionUser(): Promise<SessionUser> {
   const user = await getSessionUser();

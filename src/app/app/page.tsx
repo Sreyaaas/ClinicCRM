@@ -38,7 +38,7 @@ async function WorkspaceHomeLoader({ searchParams }: { searchParams: Promise<{ a
     prisma.patient.findMany({
       where: { clinicId: user.clinicId },
       orderBy: { updatedAt: 'desc' },
-      take: 30,
+      take: 10,
       select: {
         id: true,
         patientCode: true,

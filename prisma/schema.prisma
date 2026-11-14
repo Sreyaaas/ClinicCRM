@@ -247,6 +247,7 @@ model Patient {
   @@unique([clinicId, patientCode])
   @@index([clinicId, phone])
   @@index([clinicId, name])
+  @@index([clinicId, updatedAt])
 }
 
 model Visit {
@@ -390,6 +391,7 @@ model QueueEntry {
 
   @@unique([clinicId, doctorId, queueDay, tokenNumber])
   @@index([clinicId, queueDay, status])
+  @@index([clinicId, queueDay, tokenNumber])
   @@index([clinicId, doctorId, queueDay])
 }
 

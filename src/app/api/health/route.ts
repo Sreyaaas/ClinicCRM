@@ -6,11 +6,17 @@ import { getInfrastructureStatus } from '@/lib/supabase';
 export async function GET() {
   await connection();
   const infra = getInfrastructureStatus();
+  const start = Date.now();
   try {
     await prisma.$queryRaw`SELECT 1`;
+    const queryDurationMs = Date.now() - start;
+    const rawDbUrl = process.env.DATABASE_URL || '';
+    const maskedDbUrl = rawDbUrl.replace(/:([^:@]+)@/, ':***@');
     return NextResponse.json({
       ok: true,
       database: 'connected',
+      queryDurationMs,
+      dbTarget: maskedDbUrl,
       storageProvider: getActiveStorageProvider(),
       supabaseMode: infra.supabaseMode,
     });
