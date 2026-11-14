@@ -3,7 +3,7 @@
 import type { PlanTier } from '@prisma/client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { SessionUser } from '@/lib/auth';
 import { performSignOut } from '@/lib/client-auth';
 import { formatIstDateTime } from '@/lib/date';
@@ -157,13 +157,27 @@ function ToggleRow({
   );
 }
 
+const SettingsNavContext = createContext<{
+  selectTab: (tab: SettingsTabId) => void;
+}>({
+  selectTab: () => {},
+});
+
 function Locked({ children }: { children: ReactNode }) {
+  const { selectTab } = useContext(SettingsNavContext);
   return (
     <div className="alert alert-info">
       <IconLock />
       <div className="text-[13px]">
         {children}{' '}
-        <Link href="/app/settings?tab=plan" className="link">
+        <Link
+          href="/app/settings?tab=plan"
+          onClick={(e) => {
+            e.preventDefault();
+            selectTab('plan');
+          }}
+          className="link font-semibold underline underline-offset-2 hover:opacity-80"
+        >
           See plans
         </Link>
       </div>
@@ -211,45 +225,64 @@ export function SettingsClient({
     visibleTabs.some((t) => t.id === initialTab) ? initialTab : visibleTabs[0].id
   );
 
+  const selectTab = useCallback((targetTab: SettingsTabId) => {
+    setTab(targetTab);
+    window.history.pushState(null, '', `/app/settings?tab=${targetTab}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+  // Listen to browser Back/Forward (popstate) buttons so tab updates
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const requested = params.get('tab');
+      const target = requested === 'themes' ? 'appearance' : requested;
+      if (target && visibleTabs.some((t) => t.id === target)) {
+        setTab(target as SettingsTabId);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [visibleTabs]);
+
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeader title="Settings" description={`${user.clinic.name} · ${getPlanDefinition(user.clinic.planTier).label}`} />
+    <SettingsNavContext.Provider value={{ selectTab }}>
+      <div className="flex flex-col gap-6">
+        <PageHeader title="Settings" description={`${user.clinic.name} · ${getPlanDefinition(user.clinic.planTier).label}`} />
 
-      <div className="grid items-start gap-6 lg:grid-cols-[200px_minmax(0,1fr)]">
-        <nav aria-label="Settings sections" className="scroll-x -mx-4 px-4 lg:sticky lg:top-8 lg:mx-0 lg:px-0">
-          <ul className="flex gap-1 lg:flex-col">
-            {visibleTabs.map((t) => (
-              <li key={t.id}>
-                <button
-                  type="button"
-                  aria-current={tab === t.id ? 'page' : undefined}
-                  onClick={() => {
-                    setTab(t.id);
-                    window.history.replaceState(null, '', `/app/settings?tab=${t.id}`);
-                  }}
-                  className={`flex h-9 w-full items-center gap-2.5 whitespace-nowrap rounded-[var(--r-control)] px-3 text-left text-[13.5px] font-medium transition-colors [&>svg]:h-4 [&>svg]:w-4 ${
-                    tab === t.id ? 'bg-surface text-fg shadow-card ring-1 ring-line lg:bg-brand-soft lg:text-brand-ink lg:shadow-none lg:ring-0' : 'text-muted hover:bg-surface-2 hover:text-fg'
-                  }`}
-                >
-                  {t.icon}
-                  {t.label}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        <div className="grid items-start gap-6 lg:grid-cols-[200px_minmax(0,1fr)]">
+          <nav aria-label="Settings sections" className="scroll-x -mx-4 px-4 lg:sticky lg:top-8 lg:mx-0 lg:px-0">
+            <ul className="flex gap-1 lg:flex-col">
+              {visibleTabs.map((t) => (
+                <li key={t.id}>
+                  <button
+                    type="button"
+                    aria-current={tab === t.id ? 'page' : undefined}
+                    onClick={() => selectTab(t.id)}
+                    className={`flex h-9 w-full items-center gap-2.5 whitespace-nowrap rounded-[var(--r-control)] px-3 text-left text-[13.5px] font-medium transition-colors [&>svg]:h-4 [&>svg]:w-4 ${
+                      tab === t.id ? 'bg-surface text-fg shadow-card ring-1 ring-line lg:bg-brand-soft lg:text-brand-ink lg:shadow-none lg:ring-0' : 'text-muted hover:bg-surface-2 hover:text-fg'
+                    }`}
+                  >
+                    {t.icon}
+                    {t.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </nav>
 
-        <div className="flex min-w-0 flex-col gap-6">
-          {tab === 'profile' && <ProfileTab user={user} />}
-          {tab === 'clinic' && isOwner && <ClinicTab user={user} />}
-          {tab === 'appearance' && <AppearanceTab user={user} isOwner={isOwner} />}
-          {tab === 'presets' && isDoctor && <PresetsTab user={user} initialPresets={initialPresets} initialTemplates={initialTemplates} />}
-          {tab === 'team' && <TeamTab user={user} initialMembers={initialMembers} initialBranches={initialBranches} />}
-          {tab === 'plan' && <PlanTab user={user} usage={usage} members={initialMembers} branches={initialBranches} />}
-          {tab === 'security' && <SecurityTab user={user} infra={infra} audit={initialAudit} />}
+          <div className="flex min-w-0 flex-col gap-6">
+            {tab === 'profile' && <ProfileTab user={user} />}
+            {tab === 'clinic' && isOwner && <ClinicTab user={user} />}
+            {tab === 'appearance' && <AppearanceTab user={user} isOwner={isOwner} />}
+            {tab === 'presets' && isDoctor && <PresetsTab user={user} initialPresets={initialPresets} initialTemplates={initialTemplates} />}
+            {tab === 'team' && <TeamTab user={user} initialMembers={initialMembers} initialBranches={initialBranches} />}
+            {tab === 'plan' && <PlanTab user={user} usage={usage} members={initialMembers} branches={initialBranches} />}
+            {tab === 'security' && <SecurityTab user={user} infra={infra} audit={initialAudit} />}
+          </div>
         </div>
       </div>
-    </div>
+    </SettingsNavContext.Provider>
   );
 }
 
