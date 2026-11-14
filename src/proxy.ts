@@ -31,11 +31,6 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL(hasSessionCookie ? '/app' : '/login', request.url));
   }
 
-  // Apex domain handling: if doctor is already logged in, skip the marketing landing page
-  if (pathname === '/' && hasSessionCookie && !request.nextUrl.searchParams.has('landing')) {
-    return NextResponse.redirect(new URL('/app', request.url));
-  }
-
   // Optimistic auth check for protected app routes; authoritative verification runs in requireSessionUser()
   if (pathname === '/app' || pathname.startsWith('/app/')) {
     if (!hasSessionCookie) {

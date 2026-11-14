@@ -125,11 +125,26 @@ export async function createUserSession(userId: string, clinicId: string): Promi
 
 export async function clearUserSession(): Promise<void> {
   const cookieStore = await cookies();
-  const { name } = getSessionCookieConfig();
+  const { name, secure } = getSessionCookieConfig();
+  // RFC 6265bis strictly requires Path=/ and Secure for __Host- prefixed cookies
+  cookieStore.set(name, '', {
+    httpOnly: true,
+    secure,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 0,
+    expires: new Date(0),
+  });
+  cookieStore.set('clinic_session', '', {
+    httpOnly: true,
+    secure: false,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 0,
+    expires: new Date(0),
+  });
   cookieStore.delete(name);
-  if (name !== 'clinic_session') {
-    cookieStore.delete('clinic_session');
-  }
+  cookieStore.delete('clinic_session');
 }
 
 export const getSessionUser = cache(async function getSessionUser(): Promise<SessionUser | null> {

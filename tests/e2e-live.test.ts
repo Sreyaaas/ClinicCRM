@@ -220,3 +220,15 @@ test('E2E: 7. Cleanup Test Data', async () => {
     assert.ok(deleteRes.status === 200 || deleteRes.status === 405);
   }
 });
+
+test('E2E: 8. Auth Logout clears session cookie', async () => {
+  const logoutRes = await fetch(`${BASE_URL}/api/auth/logout`, {
+    method: 'POST',
+    headers: { Cookie: sessionCookie },
+  });
+  assert.strictEqual(logoutRes.status, 200);
+
+  const setCookie = logoutRes.headers.get('set-cookie');
+  assert.ok(setCookie, 'Expected Set-Cookie deletion header');
+  assert.ok(setCookie.includes('Max-Age=0') || setCookie.includes('Expires=') || setCookie.includes('expires='));
+});
