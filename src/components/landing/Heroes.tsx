@@ -43,7 +43,7 @@ function Ctas({ dark = false, center = false }: { dark?: boolean; center?: boole
           dark ? 'border border-white/20 bg-white/[0.08] text-white backdrop-blur-md hover:bg-white/[0.14]' : 'btn-secondary'
         }`}
       >
-        Open the demo clinic
+        Sign in to clinic
       </Link>
     </div>
   );

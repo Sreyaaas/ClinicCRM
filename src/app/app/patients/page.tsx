@@ -47,7 +47,14 @@ async function PatientsLoader() {
   const effectiveTotal = isDemo ? Math.min(total, 2) : total;
   const effectiveMax = isDemo ? 2 : user.clinic.maxPatients;
 
-  return <PatientsClient initialPatients={serialized} totalCount={effectiveTotal} maxPatients={effectiveMax} />;
+  return (
+    <PatientsClient
+      initialPatients={serialized}
+      totalCount={effectiveTotal}
+      maxPatients={effectiveMax}
+      isOwner={user.role === 'OWNER_DOCTOR'}
+    />
+  );
 }
 
 export default function PatientsPage() {

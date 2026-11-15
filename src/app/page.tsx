@@ -409,7 +409,7 @@ export default function HomePage() {
                   <IconArrowRight />
                 </Link>
                 <Link href="/login" className="btn h-[52px] border border-white/30 px-6 text-[15.5px] text-white hover:bg-white/10">
-                  Open the demo clinic
+                  Sign in to clinic
                 </Link>
               </div>
             </div>

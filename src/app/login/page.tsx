@@ -17,9 +17,20 @@ const DEMO_EMAILS = [
 
 const ROLE_LABEL: Record<string, string> = { OWNER_DOCTOR: 'Owner', DOCTOR: 'Doctor', STAFF: 'Front desk' };
 
-async function LoginLoader() {
+async function LoginLoader({
+  searchParams,
+}: {
+  searchParams?: Promise<{ demo?: string }>;
+}) {
+  const sp = searchParams ? await searchParams : {};
+  const isDemoExplicitlyRequested = sp.demo === '1' || sp.demo === 'true';
+  const isEnabledByEnv = process.env.NEXT_PUBLIC_ENABLE_DEMO_USERS === 'true';
+  const isDev = process.env.NODE_ENV !== 'production' && process.env.NEXT_PUBLIC_ENABLE_DEMO_USERS !== 'false';
+
+  const showDemo = isDemoExplicitlyRequested || isEnabledByEnv || isDev;
+
   let demos: DemoAccount[] = [];
-  if (process.env.NEXT_PUBLIC_ENABLE_DEMO_USERS !== 'false') {
+  if (showDemo) {
     try {
       // Read real names so the sign-in page always matches what's inside the app
       const users = await prisma.user.findMany({
@@ -47,11 +58,15 @@ async function LoginLoader() {
   return <LoginClient demos={demos} />;
 }
 
-export default function LoginPage() {
+export default function LoginPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ demo?: string }>;
+}) {
   return (
     <div data-landing style={DEFAULT_PALETTE.vars as React.CSSProperties} className="theme-light min-h-dvh">
       <Suspense fallback={<div className="min-h-dvh" />}>
-        <LoginLoader />
+        <LoginLoader searchParams={searchParams} />
       </Suspense>
     </div>
   );

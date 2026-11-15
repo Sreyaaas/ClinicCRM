@@ -365,7 +365,7 @@ export function PrescriptionOcrModal({
                     onClick={loadDemoPrescription}
                   >
                     <IconSparkle className="text-brand" />
-                    Try Sample Kerala Prescription
+                    Try Sample Slip
                   </button>
                 </div>
               </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { SessionUser } from '@/lib/auth';
 import { checkPrescriptionSafety } from '@/lib/clinical-safety';
@@ -216,6 +217,7 @@ export function PatientChartClient({
   activeQueueId: string | null;
   todayIst: string;
 }) {
+  const router = useRouter();
   const features = getPlanFeatures(user.clinic.planTier);
   const canPrescribe = isDoctorRole(user.role);
   const waLang = user.preferredWhatsappLang === 'ml' || user.clinic.whatsappLang === 'ml' ? 'ml' : 'en';
@@ -237,6 +239,21 @@ export function PatientChartClient({
   const [selectedDoc, setSelectedDoc] = useState<ChartDocument | null>(null);
   const [qrBill, setQrBill] = useState<ChartBilling | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deletePatientOpen, setDeletePatientOpen] = useState(false);
+  const [deletingPatient, setDeletingPatient] = useState(false);
+
+  async function handleDeletePatient() {
+    setDeletingPatient(true);
+    const r = await apiJson(`/api/patients/${patient.id}`, { method: 'DELETE' });
+    setDeletingPatient(false);
+    if (!r.ok) {
+      toast(r.error, { tone: 'error' });
+      return;
+    }
+    toast(`Patient ${patient.name} deleted.`);
+    setDeletePatientOpen(false);
+    router.push('/app/patients');
+  }
 
   async function reloadPatient() {
     const r = await apiJson<{ patient: ChartPatient }>(`/api/patients/${patient.id}`);
@@ -365,6 +382,17 @@ export function PatientChartClient({
             <button type="button" onClick={() => setEditOpen(true)} className="btn btn-secondary btn-icon" aria-label="Edit patient" title="Edit details">
               <IconEdit />
             </button>
+            {user.role === 'OWNER_DOCTOR' && (
+              <button
+                type="button"
+                onClick={() => setDeletePatientOpen(true)}
+                className="btn btn-secondary btn-icon text-danger hover:border-danger hover:bg-danger/10"
+                aria-label="Delete patient"
+                title="Delete patient"
+              >
+                <IconTrash />
+              </button>
+            )}
             <button type="button" onClick={() => setScanOpen(true)} className="btn btn-secondary max-sm:flex-1">
               <IconCamera />
               Add report
@@ -655,6 +683,11 @@ export function PatientChartClient({
       <EditPatientDialog
         open={editOpen}
         patient={patient}
+        isOwner={user.role === 'OWNER_DOCTOR'}
+        onRequestDelete={() => {
+          setEditOpen(false);
+          setDeletePatientOpen(true);
+        }}
         onClose={() => setEditOpen(false)}
         onSaved={async () => {
           setEditOpen(false);
@@ -662,6 +695,38 @@ export function PatientChartClient({
           await reloadPatient();
         }}
       />
+
+      <Modal
+        open={deletePatientOpen}
+        onClose={() => !deletingPatient && setDeletePatientOpen(false)}
+        title={`Delete ${patient.name}?`}
+        description="This will permanently delete this patient and all associated consultations, prescriptions, reports, and bills. This cannot be undone."
+        size="sm"
+        footer={
+          <div className="flex w-full justify-end gap-2">
+            <button
+              type="button"
+              disabled={deletingPatient}
+              onClick={() => setDeletePatientOpen(false)}
+              className="btn btn-secondary"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={deletingPatient}
+              onClick={() => void handleDeletePatient()}
+              className="btn btn-danger"
+            >
+              {deletingPatient ? 'Deleting…' : 'Delete patient'}
+            </button>
+          </div>
+        }
+      >
+        <div className="rounded-[var(--r-control)] border border-danger/30 bg-danger/5 p-3 text-[13px] text-danger">
+          <strong>Warning:</strong> You are permanently deleting patient <span className="font-mono">{patient.patientCode}</span> ({patient.name}).
+        </div>
+      </Modal>
 
       <ScanDialog
         open={scanOpen}
@@ -1078,11 +1143,15 @@ function EditPatientDialog({
   patient,
   onClose,
   onSaved,
+  isOwner = false,
+  onRequestDelete,
 }: {
   open: boolean;
   patient: ChartPatient;
   onClose: () => void;
   onSaved: () => Promise<void>;
+  isOwner?: boolean;
+  onRequestDelete?: () => void;
 }) {
   return (
     <Modal
@@ -1090,14 +1159,25 @@ function EditPatientDialog({
       onClose={onClose}
       title="Edit patient"
       footer={
-        <>
-          <button type="button" className="btn btn-secondary" onClick={onClose}>
-            Cancel
-          </button>
-          <button type="submit" form="edit-patient-form" className="btn btn-primary">
-            Save changes
-          </button>
-        </>
+        <div className="flex w-full items-center justify-between">
+          {isOwner && onRequestDelete ? (
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm text-danger"
+              onClick={onRequestDelete}
+            >
+              <IconTrash /> Delete patient
+            </button>
+          ) : <div />}
+          <div className="flex gap-2">
+            <button type="button" className="btn btn-secondary" onClick={onClose}>
+              Cancel
+            </button>
+            <button type="submit" form="edit-patient-form" className="btn btn-primary">
+              Save changes
+            </button>
+          </div>
+        </div>
       }
     >
       {open && <EditPatientForm patient={patient} onSaved={onSaved} />}

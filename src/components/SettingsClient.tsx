@@ -159,28 +159,41 @@ function ToggleRow({
 
 const SettingsNavContext = createContext<{
   selectTab: (tab: SettingsTabId) => void;
+  openPlanUpgrade: (targetTier?: PlanTier) => void;
 }>({
   selectTab: () => {},
+  openPlanUpgrade: () => {},
 });
 
-function Locked({ children }: { children: ReactNode }) {
-  const { selectTab } = useContext(SettingsNavContext);
+function Locked({
+  children,
+  targetTier,
+  ctaText = 'See plans',
+}: {
+  children: ReactNode;
+  targetTier?: PlanTier;
+  ctaText?: string;
+}) {
+  const { selectTab, openPlanUpgrade } = useContext(SettingsNavContext);
   return (
-    <div className="alert alert-info">
-      <IconLock />
-      <div className="text-[13px]">
-        {children}{' '}
-        <Link
-          href="/app/settings?tab=plan"
-          onClick={(e) => {
-            e.preventDefault();
-            selectTab('plan');
-          }}
-          className="link font-semibold underline underline-offset-2 hover:opacity-80"
-        >
-          See plans
-        </Link>
+    <div className="alert alert-info flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-center gap-2">
+        <IconLock className="h-4 w-4 shrink-0 text-brand" />
+        <span className="text-[13px]">{children}</span>
       </div>
+      <button
+        type="button"
+        onClick={() => {
+          if (targetTier) {
+            openPlanUpgrade(targetTier);
+          } else {
+            selectTab('plan');
+          }
+        }}
+        className="btn btn-primary btn-sm shrink-0 self-start font-semibold sm:self-auto"
+      >
+        {ctaText}
+      </button>
     </div>
   );
 }
@@ -224,10 +237,20 @@ export function SettingsClient({
   const [tab, setTab] = useState<SettingsTabId>(
     visibleTabs.some((t) => t.id === initialTab) ? initialTab : visibleTabs[0].id
   );
+  const [selectedPlanForUpgrade, setSelectedPlanForUpgrade] = useState<PlanTier | null>(null);
 
   const selectTab = useCallback((targetTab: SettingsTabId) => {
     setTab(targetTab);
     window.history.pushState(null, '', `/app/settings?tab=${targetTab}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+  const openPlanUpgrade = useCallback((targetTier?: PlanTier) => {
+    if (targetTier) {
+      setSelectedPlanForUpgrade(targetTier);
+    }
+    setTab('plan');
+    window.history.pushState(null, '', `/app/settings?tab=plan`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
@@ -246,7 +269,7 @@ export function SettingsClient({
   }, [visibleTabs]);
 
   return (
-    <SettingsNavContext.Provider value={{ selectTab }}>
+    <SettingsNavContext.Provider value={{ selectTab, openPlanUpgrade }}>
       <div className="flex flex-col gap-6">
         <PageHeader title="Settings" description={`${user.clinic.name} · ${getPlanDefinition(user.clinic.planTier).label}`} />
 
@@ -277,7 +300,16 @@ export function SettingsClient({
             {tab === 'appearance' && <AppearanceTab user={user} isOwner={isOwner} />}
             {tab === 'presets' && isDoctor && <PresetsTab user={user} initialPresets={initialPresets} initialTemplates={initialTemplates} />}
             {tab === 'team' && <TeamTab user={user} initialMembers={initialMembers} initialBranches={initialBranches} />}
-            {tab === 'plan' && <PlanTab user={user} usage={usage} members={initialMembers} branches={initialBranches} />}
+            {tab === 'plan' && (
+              <PlanTab
+                user={user}
+                usage={usage}
+                members={initialMembers}
+                branches={initialBranches}
+                selectedPlanForAction={selectedPlanForUpgrade}
+                setSelectedPlanForAction={setSelectedPlanForUpgrade}
+              />
+            )}
             {tab === 'security' && <SecurityTab user={user} infra={infra} audit={initialAudit} />}
           </div>
         </div>
@@ -993,7 +1025,7 @@ function PresetsTab({
 
       <Section title="Quick packs" description="Fill diagnosis, medicines and follow-up in one tap for common conditions.">
         {!features.conditionTemplates ? (
-          <Locked>Quick packs are available on Solo Pro and above.</Locked>
+          <Locked targetTier="CLINIC" ctaText="Upgrade to Clinic Core">Quick packs are available on Clinic Core and above.</Locked>
         ) : (
           <>
             <form onSubmit={addTemplate} className="grid gap-3 sm:grid-cols-2">
@@ -1136,7 +1168,7 @@ function TeamTab({
           ) : undefined
         }
       >
-        {!features.teamManagement && <div className="mb-4"><Locked>Add doctors and front-desk staff on Clinic Core and above.</Locked></div>}
+        {!features.teamManagement && <div className="mb-4"><Locked targetTier="CLINIC" ctaText="Upgrade to Clinic Core">Add doctors and front-desk staff on Clinic Core and above.</Locked></div>}
 
         {adding && (
           <form onSubmit={addMember} className="mb-5 flex flex-col gap-4 rounded-[var(--r-card)] border border-line bg-surface-2 p-4">
@@ -1188,7 +1220,7 @@ function TeamTab({
 
       <Section title="Branches" description={features.multiBranch ? `${Math.max(1, branches.length)} of ${plan.maxBranches} branches` : undefined}>
         {!features.multiBranch ? (
-          <Locked>Run multiple branches from one account on the Enterprise plan.</Locked>
+          <Locked targetTier="ENTERPRISE" ctaText="Upgrade to Enterprise">Run multiple branches from one account on the Enterprise plan.</Locked>
         ) : (
           <>
             {isOwner && (
@@ -1232,17 +1264,20 @@ function PlanTab({
   usage,
   members,
   branches,
+  selectedPlanForAction,
+  setSelectedPlanForAction,
 }: {
   user: SessionUser;
   usage: { patients: number; storageMb: number };
   members: SettingsMemberItem[];
   branches: SettingsBranchItem[];
+  selectedPlanForAction: PlanTier | null;
+  setSelectedPlanForAction: (tier: PlanTier | null) => void;
 }) {
   const router = useRouter();
   const isOwner = user.role === 'OWNER_DOCTOR';
   const current = getPlanDefinition(user.clinic.planTier);
   const [switching, setSwitching] = useState<PlanTier | null>(null);
-  const [selectedPlanForAction, setSelectedPlanForAction] = useState<PlanTier | null>(null);
   const docs = members.filter((m) => m.isActive && isDoctorRole(m.role)).length;
   const staff = members.filter((m) => m.isActive && m.role === 'STAFF').length;
 
@@ -1579,7 +1614,7 @@ function SecurityTab({ user, infra, audit }: { user: SessionUser; infra: Infrast
 
       <Section title="Activity log" description="Who did what, and when.">
         {!features.auditLogs ? (
-          <Locked>The staff activity log is available on Growth and Enterprise.</Locked>
+          <Locked targetTier="GROWTH" ctaText="Upgrade to Growth">The staff activity log is available on Growth and Enterprise.</Locked>
         ) : audit.length === 0 ? (
           <p className="text-[13px] text-muted">No activity recorded yet.</p>
         ) : (
