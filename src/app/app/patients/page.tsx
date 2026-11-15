@@ -4,17 +4,20 @@ import { PageSkeleton } from '@/components/PageSkeleton';
 import { PatientsClient } from '@/components/PatientsClient';
 import type { PatientListItem } from '@/components/patients';
 import { requireSessionUser } from '@/lib/auth';
+import { isDemoUser } from '@/lib/demo-restriction';
 import { prisma } from '@/lib/prisma';
 
 export const metadata: Metadata = { title: 'Patients' };
 
 async function PatientsLoader() {
   const user = await requireSessionUser();
+  const isDemo = isDemoUser(user);
+
   const [patients, total] = await Promise.all([
     prisma.patient.findMany({
       where: { clinicId: user.clinicId },
-      orderBy: { updatedAt: 'desc' },
-      take: 40,
+      orderBy: isDemo ? [{ patientCode: 'asc' }] : [{ updatedAt: 'desc' }],
+      take: isDemo ? 2 : 40,
       select: {
         id: true,
         patientCode: true,
@@ -41,7 +44,10 @@ async function PatientsLoader() {
     visits: p.visits.map((v) => ({ ...v, visitedAt: v.visitedAt.toISOString() })),
   }));
 
-  return <PatientsClient initialPatients={serialized} totalCount={total} maxPatients={user.clinic.maxPatients} />;
+  const effectiveTotal = isDemo ? Math.min(total, 2) : total;
+  const effectiveMax = isDemo ? 2 : user.clinic.maxPatients;
+
+  return <PatientsClient initialPatients={serialized} totalCount={effectiveTotal} maxPatients={effectiveMax} />;
 }
 
 export default function PatientsPage() {

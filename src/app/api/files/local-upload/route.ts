@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 import { ApiError, handleApiError, requireApiUser } from '@/lib/api';
+import { assertDemoStorageAllowed } from '@/lib/demo-restriction';
 import { verifyLocalUploadToken, writeLocalStorageObject } from '@/lib/storage/local-adapter';
 import { isAllowedDocumentMime } from '@/lib/storage/router';
 
 export async function PUT(request: Request) {
   try {
     const user = await requireApiUser({ requireActiveSub: true });
+    assertDemoStorageAllowed(user);
     const { searchParams } = new URL(request.url);
     const key = searchParams.get('key') ?? '';
     const mime = searchParams.get('mime') ?? '';

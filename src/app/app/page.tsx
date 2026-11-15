@@ -11,6 +11,7 @@ import {
 } from '@/components/WorkspaceHomeClient';
 import { requireSessionUser } from '@/lib/auth';
 import { getIstDayBounds, getIstDayString, istHour } from '@/lib/date';
+import { isDemoUser } from '@/lib/demo-restriction';
 import { getPlanFeatures } from '@/lib/plans';
 import { prisma } from '@/lib/prisma';
 
@@ -25,6 +26,8 @@ async function WorkspaceHomeLoader({ searchParams }: { searchParams: Promise<{ a
   const queueDay = getIstDayString();
   const { start, end } = getIstDayBounds(queueDay);
 
+  const isDemo = isDemoUser(user);
+
   const [
     patients,
     totalPatientsCount,
@@ -37,8 +40,8 @@ async function WorkspaceHomeLoader({ searchParams }: { searchParams: Promise<{ a
   ] = await Promise.all([
     prisma.patient.findMany({
       where: { clinicId: user.clinicId },
-      orderBy: { updatedAt: 'desc' },
-      take: 10,
+      orderBy: isDemo ? [{ patientCode: 'asc' }] : [{ updatedAt: 'desc' }],
+      take: isDemo ? 2 : 10,
       select: {
         id: true,
         patientCode: true,
@@ -177,7 +180,7 @@ async function WorkspaceHomeLoader({ searchParams }: { searchParams: Promise<{ a
     <WorkspaceHomeClient
       user={user}
       initialPatients={serializedPatients}
-      totalPatientsCount={totalPatientsCount}
+      totalPatientsCount={isDemo ? Math.min(totalPatientsCount, 2) : totalPatientsCount}
       initialQueue={serializedQueue}
       initialAppointments={serializedAppointments}
       doctors={serializedDoctors}

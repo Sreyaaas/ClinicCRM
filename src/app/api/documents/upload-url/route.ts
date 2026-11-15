@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { ApiError, handleApiError, parseJsonBody, requireApiUser } from '@/lib/api';
 import { assertRateLimit } from '@/lib/rate-limit';
+import { assertDemoStorageAllowed } from '@/lib/demo-restriction';
 import { prisma } from '@/lib/prisma';
 import { createUploadTarget, isAllowedDocumentMime } from '@/lib/storage/router';
 
@@ -25,6 +26,7 @@ const uploadUrlSchema = z.object({
 export async function POST(request: Request) {
   try {
     const user = await requireApiUser({ requireActiveSub: true });
+    assertDemoStorageAllowed(user);
     assertRateLimit(request, {
       action: 'upload_url',
       limit: 30,

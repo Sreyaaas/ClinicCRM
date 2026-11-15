@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { Prisma } from '@prisma/client';
 import { ApiError, handleApiError, parseJsonBody, requireApiUser } from '@/lib/api';
 import { recordAuditLog } from '@/lib/audit';
+import { assertDemoPatientLimit, isDemoUser } from '@/lib/demo-restriction';
 import { generateNextPatientCode } from '@/lib/patient-code';
 import { PLAN_DEFAULTS } from '@/lib/plans';
 import { prisma } from '@/lib/prisma';
@@ -46,10 +47,12 @@ export async function GET(request: Request) {
         : {}),
     };
 
+    const isDemo = isDemoUser(user);
+
     const patients = await prisma.patient.findMany({
       where,
       orderBy: [{ updatedAt: 'desc' }],
-      take: 40,
+      take: isDemo ? 2 : 40,
       select: {
         id: true,
         patientCode: true,
@@ -85,6 +88,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const user = await requireApiUser({ requireActiveSub: true });
+    await assertDemoPatientLimit(user);
     const body = await parseJsonBody(request, createPatientSchema);
 
     if (user.clinic.maxPatients !== null) {

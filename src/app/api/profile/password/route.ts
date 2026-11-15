@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { ApiError, handleApiError, parseJsonBody, requireApiUser } from '@/lib/api';
 import { recordAuditLog } from '@/lib/audit';
+import { assertDemoMutationAllowed } from '@/lib/demo-restriction';
 import { hashPassword, verifyPassword } from '@/lib/password';
 import { prisma } from '@/lib/prisma';
 
@@ -13,6 +14,7 @@ const changePasswordSchema = z.object({
 export async function POST(request: Request) {
   try {
     const user = await requireApiUser();
+    assertDemoMutationAllowed(user, 'Changing account passwords');
     const body = await parseJsonBody(request, changePasswordSchema);
 
     const dbUser = await prisma.user.findUnique({

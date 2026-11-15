@@ -5,6 +5,7 @@ import { ZodError, type ZodType } from 'zod';
 import type { UserRole } from '@prisma/client';
 import { getSessionUser, type SessionUser } from './auth';
 import { RateLimitError } from './rate-limit';
+import { DemoRestrictionError } from './demo-restriction';
 import {
   getPlanFeatures,
   getTierRequiredForFeature,
@@ -83,6 +84,13 @@ export function handleApiError(error: unknown): NextResponse {
           ? { 'Retry-After': String(error.retryAfterSeconds) }
           : undefined,
       }
+    );
+  }
+
+  if (error instanceof DemoRestrictionError) {
+    return NextResponse.json(
+      { error: error.message, code: error.code },
+      { status: error.status }
     );
   }
 

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { ApiError, handleApiError, parseJsonBody, requireApiUser } from '@/lib/api';
 import { recordAuditLog } from '@/lib/audit';
+import { isDemoUser } from '@/lib/demo-restriction';
 import { getPlanFeatures } from '@/lib/plans';
 import { prisma } from '@/lib/prisma';
 import { canUseThemePreset } from '@/lib/themes';
@@ -57,6 +58,17 @@ export async function PATCH(request: Request) {
       requireActiveSub: true,
     });
     const body = await parseJsonBody(request, updateClinicSchema);
+
+    if (isDemoUser(user)) {
+      if (body.name || body.phone || body.address || body.upiId || body.gstin || body.workingHours || body.slotDurationMin !== undefined) {
+        throw new ApiError(
+          403,
+          'Demo Walkthrough Mode: Core clinic profile settings are locked in the shared demo clinic.',
+          'DEMO_SETTINGS_LOCKED'
+        );
+      }
+    }
+
     const features = getPlanFeatures(user.clinic.planTier);
 
     if (body.themePreset && !canUseThemePreset(user.clinic.planTier, body.themePreset)) {

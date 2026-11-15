@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { ApiError, handleApiError, parseJsonBody, requireApiUser } from '@/lib/api';
 import { recordAuditLog } from '@/lib/audit';
+import { assertDemoPatientDeleteAllowed } from '@/lib/demo-restriction';
 import { prisma } from '@/lib/prisma';
 
 const updatePatientSchema = z.object({
@@ -126,6 +127,8 @@ export async function DELETE(_request: NextRequest, ctx: RouteContext<'/api/pati
     if (!existing) {
       throw new ApiError(404, 'Patient not found.', 'PATIENT_NOT_FOUND');
     }
+
+    assertDemoPatientDeleteAllowed(user, existing.patientCode);
 
     await prisma.patient.delete({
       where: { id: existing.id },

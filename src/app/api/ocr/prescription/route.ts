@@ -1,12 +1,16 @@
 import { NextResponse } from 'next/server';
 import { ApiError, handleApiError, requireApiUser } from '@/lib/api';
+import { assertDemoAiQuota, isDemoUser } from '@/lib/demo-restriction';
 import { extractPrescriptionWithGemini } from '@/lib/gemini-ocr';
-
+import { prisma } from '@/lib/prisma';
 
 export async function POST(request: Request) {
   try {
     // Ensure caller is an authenticated doctor or staff
-    await requireApiUser();
+    const user = await requireApiUser();
+
+    // Check demo walkthrough restriction: max 1 AI scan credit
+    await assertDemoAiQuota(user);
 
     const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
     if (!apiKey) {
@@ -46,6 +50,19 @@ export async function POST(request: Request) {
       mimeType,
       apiKey,
     });
+
+    if (isDemoUser(user)) {
+      await prisma.auditLog.create({
+        data: {
+          clinicId: user.clinicId,
+          actorUserId: user.id,
+          actorName: user.name,
+          action: 'AI_OCR_SCAN',
+          entityType: 'GeminiOCR',
+          summary: `Demo AI Scan credit used by ${user.name}`,
+        },
+      });
+    }
 
     return NextResponse.json({
       ok: true,

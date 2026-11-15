@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { ApiError, handleApiError, parseJsonBody, requireApiUser } from '@/lib/api';
+import { assertDemoMutationAllowed } from '@/lib/demo-restriction';
 import { hashPassword } from '@/lib/password';
 import { isDoctorRole } from '@/lib/plans';
 import { prisma } from '@/lib/prisma';
@@ -58,6 +59,7 @@ export async function POST(request: Request) {
       roles: ['OWNER_DOCTOR'],
       requireActiveSub: true,
     });
+    assertDemoMutationAllowed(user, 'Adding team members');
     const body = await parseJsonBody(request, createMemberSchema);
 
     const [activeDoctors, activeStaff, existingEmail] = await Promise.all([
