@@ -403,15 +403,18 @@ export default function HomePage() {
                 <br />
                 on {BRAND_NAME}.
               </h2>
-              <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-                <Link href="/register?tier=SOLO" className="btn btn-primary h-[52px] px-6 text-[15.5px] font-semibold">
+              <div className="mt-10 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+                <Link href="/register?tier=SOLO" className="btn btn-primary h-[54px] px-8 text-[16px] font-semibold shadow-lg">
                   Start 14-day free trial
                   <IconArrowRight />
                 </Link>
-                <Link href="/login" className="btn h-[52px] border border-white/30 px-6 text-[15.5px] text-white hover:bg-white/10">
-                  Sign in to clinic
+                <Link href="/login" className="text-[14.5px] text-white/70 hover:text-white underline underline-offset-4">
+                  Already have an account? Sign in →
                 </Link>
               </div>
+              <p className="mt-4 text-[13.5px] text-white/60">
+                No credit card required · Setup in 2 minutes · Cancel anytime
+              </p>
             </div>
             <PulseLine className="relative z-[1] mt-14 h-[90px] w-full" color="var(--dusk-pulse)" />
           </div>
