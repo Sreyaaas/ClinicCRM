@@ -25,7 +25,7 @@ function Eyebrow({ dark = false }: { dark?: boolean }) {
         dark ? 'inline-flex rounded-full border border-white/15 bg-white/[0.07] px-4 py-1.5 text-white/85 backdrop-blur-md' : 'text-[var(--accent)]'
       }`}
     >
-      Made in Kannur, for clinics across India
+      Made in Kerala, for clinics across India
     </p>
   );
 }

@@ -423,7 +423,7 @@ export default function HomePage() {
           <div className="flex items-center gap-3">
             <BrandMark size={24} />
             <span className="font-bold">{BRAND_NAME}</span>
-            <span className="text-muted">· Made in Kannur, Kerala</span>
+            <span className="text-muted">· Made in Kerala</span>
           </div>
           <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2 text-muted">
             <a href="#day" className="hover:text-fg">Product</a>

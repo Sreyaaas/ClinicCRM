@@ -67,21 +67,26 @@ export async function assertDemoAiQuota(user: SessionUser): Promise<void> {
 }
 
 /**
- * Enforces that demo clinics can test adding at most 1 patient (max 2 total: 1 sample + 1 test).
+ * Enforces that demo clinics have at most 1 pre-filled patient + 1 test patient.
+ * Automatically cleans up stale test patients from previous runs so demo clinics never bloat.
  */
 export async function assertDemoPatientLimit(user: SessionUser): Promise<void> {
   if (!isDemoUser(user)) return;
 
-  const currentCount = await prisma.patient.count({
-    where: { clinicId: user.clinicId },
+  // Auto-clean any stale test patients from prior test runs (protecting PT-0001)
+  const nonPrimaryPatients = await prisma.patient.findMany({
+    where: {
+      clinicId: user.clinicId,
+      patientCode: { not: 'PT-0001' },
+    },
+    select: { id: true },
   });
 
-  if (currentCount >= 2) {
-    throw new DemoRestrictionError(
-      403,
-      'Demo Walkthrough Limit: In the shared demo clinic, you can test adding at most 1 patient. Start your 14-day free trial to add unlimited patients.',
-      'DEMO_PATIENT_LIMIT_REACHED'
-    );
+  if (nonPrimaryPatients.length >= 1) {
+    // Prune stale test patients to ensure the clinic stays clean with only 1 sample patient
+    await prisma.patient.deleteMany({
+      where: { id: { in: nonPrimaryPatients.map((p) => p.id) } },
+    });
   }
 }
 
