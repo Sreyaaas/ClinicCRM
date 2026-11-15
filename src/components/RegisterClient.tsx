@@ -165,7 +165,11 @@ export function RegisterClient({ initialTier }: { initialTier: PlanTier }) {
                           <span className="block truncate text-[12px] text-muted">{p.tagline}</span>
                         </span>
                         <span className="text-[13px] font-medium tnum">
-                          {p.monthlyPriceInr === 0 ? 'Free' : `₹${p.monthlyPriceInr.toLocaleString('en-IN')}`}
+                          {tier === 'ENTERPRISE'
+                            ? 'Custom'
+                            : p.monthlyPriceInr === 0
+                              ? 'Free'
+                              : `₹${p.monthlyPriceInr.toLocaleString('en-IN')}`}
                         </span>
                       </label>
                     </li>

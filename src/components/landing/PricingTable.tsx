@@ -4,6 +4,7 @@ import type { PlanTier } from '@prisma/client';
 import Link from 'next/link';
 import { useState } from 'react';
 import { formatStorageMb, PLAN_DEFAULTS, PLAN_ORDER, type PlanFeatureKey } from '@/lib/plans';
+import { buildWhatsAppLink } from '@/lib/whatsapp';
 
 type Cell = boolean | string;
 
@@ -65,6 +66,9 @@ function Mark({ v }: { v: Cell }) {
 }
 
 function price(t: PlanTier, yearly: boolean) {
+  if (t === 'ENTERPRISE') {
+    return { main: 'Custom', sub: 'Talk to sales' };
+  }
   const m = PLAN_DEFAULTS[t].monthlyPriceInr;
   if (m === 0) return { main: '₹0', sub: 'Free forever' };
   if (yearly) {
@@ -133,21 +137,47 @@ export function PricingTable() {
                     </p>
                     <p className="mt-1.5 truncate text-[16px] font-semibold tracking-[-0.01em]">{p.shortName}</p>
                     <p className={`mt-0.5 truncate text-[12.5px] ${p.recommended ? 'opacity-65' : 'text-muted'}`}>{PLAN_BLURB[t]}</p>
-                    <p className="mt-5 flex items-baseline gap-1">
-                      <span className="text-[32px] font-bold leading-none tracking-[-0.035em] tnum">
-                        {`₹${perMonth.toLocaleString('en-IN')}`}
-                      </span>
-                      <span className={`text-[13px] ${p.recommended ? 'opacity-65' : 'text-muted'}`}>/mo</span>
-                    </p>
-                    <p className={`mt-1.5 h-4 text-[12px] tnum ${p.recommended ? 'opacity-65' : 'text-muted'}`}>
-                      {yearly ? `₹${(m * 10).toLocaleString('en-IN')} a year` : 'Cancel anytime'}
-                    </p>
-                    <Link
-                      href={`/register?tier=${t}`}
-                      className={`btn mt-5 h-10 w-full text-[13.5px] font-semibold ${p.recommended ? 'btn-primary' : 'btn-secondary'}`}
-                    >
-                      Start free trial
-                    </Link>
+                    {t === 'ENTERPRISE' ? (
+                      <>
+                        <p className="mt-5 flex items-baseline gap-1">
+                          <span className="text-[32px] font-bold leading-none tracking-[-0.035em]">
+                            Custom
+                          </span>
+                        </p>
+                        <p className={`mt-1.5 h-4 text-[12px] ${p.recommended ? 'opacity-65' : 'text-muted'}`}>
+                          Talk to sales
+                        </p>
+                        <a
+                          href={buildWhatsAppLink(
+                            process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || '919400000000',
+                            'Hi Nadi Team,\nI would like to inquire about the Enterprise Network plan for my clinic / hospital chain. Please connect me with sales.'
+                          )}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn btn-secondary mt-5 h-10 w-full text-[13.5px] font-semibold"
+                        >
+                          Talk to sales
+                        </a>
+                      </>
+                    ) : (
+                      <>
+                        <p className="mt-5 flex items-baseline gap-1">
+                          <span className="text-[32px] font-bold leading-none tracking-[-0.035em] tnum">
+                            {`₹${perMonth.toLocaleString('en-IN')}`}
+                          </span>
+                          <span className={`text-[13px] ${p.recommended ? 'opacity-65' : 'text-muted'}`}>/mo</span>
+                        </p>
+                        <p className={`mt-1.5 h-4 text-[12px] tnum ${p.recommended ? 'opacity-65' : 'text-muted'}`}>
+                          {yearly ? `₹${(m * 10).toLocaleString('en-IN')} a year` : 'Cancel anytime'}
+                        </p>
+                        <Link
+                          href={`/register?tier=${t}`}
+                          className={`btn mt-5 h-10 w-full text-[13.5px] font-semibold ${p.recommended ? 'btn-primary' : 'btn-secondary'}`}
+                        >
+                          Start free trial
+                        </Link>
+                      </>
+                    )}
                   </th>
                 );
               })}
@@ -216,12 +246,26 @@ export function PricingTable() {
                 <p className="mt-1 text-[13.5px] text-muted">{p.tagline}</p>
                 <p className="mt-4 text-[32px] font-semibold tracking-[-0.03em] tnum">
                   {pr.main}
-                  {p.monthlyPriceInr > 0 && <span className="text-[14px] font-normal text-muted"> /month</span>}
+                  {t !== 'ENTERPRISE' && p.monthlyPriceInr > 0 && <span className="text-[14px] font-normal text-muted"> /month</span>}
                 </p>
-                <p className="text-[12.5px] text-muted">{yearly && p.monthlyPriceInr > 0 ? pr.sub : p.monthlyPriceInr === 0 ? pr.sub : 'billed monthly'}</p>
-                <Link href={`/register?tier=${t}`} className="btn btn-primary mt-5 w-full">
-                  Start 14-day free trial
-                </Link>
+                <p className="text-[12.5px] text-muted">{t === 'ENTERPRISE' ? 'Talk to sales for hospital chains' : yearly && p.monthlyPriceInr > 0 ? pr.sub : p.monthlyPriceInr === 0 ? pr.sub : 'billed monthly'}</p>
+                {t === 'ENTERPRISE' ? (
+                  <a
+                    href={buildWhatsAppLink(
+                      process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || '919400000000',
+                      'Hi Nadi Team,\nI would like to inquire about the Enterprise Network plan for my clinic / hospital chain. Please connect me with sales.'
+                    )}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-secondary mt-5 w-full font-semibold"
+                  >
+                    Talk to sales
+                  </a>
+                ) : (
+                  <Link href={`/register?tier=${t}`} className="btn btn-primary mt-5 w-full">
+                    Start 14-day free trial
+                  </Link>
+                )}
               </div>
               <dl className="border-t border-line text-[14px]">
                 {LIMIT_ROWS.map((r) => (

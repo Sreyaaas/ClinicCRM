@@ -16,7 +16,7 @@ import {
   PLAN_ORDER,
   yearlyPriceInr,
 } from '@/lib/plans';
-import { createPlanUpgradeWhatsAppUrl } from '@/lib/whatsapp';
+import { buildWhatsAppLink, createPlanUpgradeWhatsAppUrl } from '@/lib/whatsapp';
 import type { InfrastructureStatus } from '@/lib/supabase';
 import { resolveThemeAccent, THEME_PRESETS } from '@/lib/themes';
 import { ThemeSwitcher } from './AppShell';
@@ -1316,9 +1316,11 @@ function PlanTab({
       <Section
         title={`${current.label}`}
         description={
-          user.clinic.subscriptionStatus === 'TRIAL' && user.clinic.trialDaysLeft !== null
-            ? `Free trial · ${user.clinic.trialDaysLeft} days left`
-            : `₹${current.monthlyPriceInr.toLocaleString('en-IN')} per month`
+          user.clinic.planTier === 'ENTERPRISE'
+            ? 'Enterprise Network · Custom deployment'
+            : user.clinic.subscriptionStatus === 'TRIAL' && user.clinic.trialDaysLeft !== null
+              ? `Free trial · ${user.clinic.trialDaysLeft} days left`
+              : `₹${current.monthlyPriceInr.toLocaleString('en-IN')} per month`
         }
       >
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -1357,10 +1359,12 @@ function PlanTab({
                 {isCurrent ? <Badge tone="brand">Current</Badge> : p.recommended ? <Badge>Popular</Badge> : null}
               </div>
               <p className="mt-2 text-[26px] font-semibold tracking-[-0.02em] tnum">
-                {p.monthlyPriceInr === 0 ? 'Free' : `₹${p.monthlyPriceInr.toLocaleString('en-IN')}`}
-                {p.monthlyPriceInr > 0 && <span className="text-[13px] font-normal text-muted"> /month</span>}
+                {tier === 'ENTERPRISE' ? 'Custom' : p.monthlyPriceInr === 0 ? 'Free' : `₹${p.monthlyPriceInr.toLocaleString('en-IN')}`}
+                {tier !== 'ENTERPRISE' && p.monthlyPriceInr > 0 && <span className="text-[13px] font-normal text-muted"> /month</span>}
               </p>
-              <p className="mt-1 text-[13px] text-muted">{p.tagline}</p>
+              <p className="mt-1 text-[13px] text-muted">
+                {tier === 'ENTERPRISE' ? 'Talk to sales for custom pricing' : p.tagline}
+              </p>
               <ul className="mt-4 flex flex-1 flex-col gap-2 text-[13px]">
                 {p.highlights.map((h) => (
                   <li key={h} className="flex gap-2">
@@ -1376,7 +1380,13 @@ function PlanTab({
                   onClick={() => setSelectedPlanForAction(tier)}
                   className={`btn mt-5 w-full ${isCurrent ? 'btn-secondary' : 'btn-primary'}`}
                 >
-                  {isCurrent ? 'Your plan' : switching === tier ? 'Updating…' : `Switch to ${p.shortName}`}
+                  {isCurrent
+                    ? 'Your plan'
+                    : tier === 'ENTERPRISE'
+                      ? 'Talk to sales'
+                      : switching === tier
+                        ? 'Updating…'
+                        : `Switch to ${p.shortName}`}
                 </button>
               )}
             </article>
@@ -1412,33 +1422,49 @@ function PlanUpgradeModal({
   const isDowngrade = targetIndex < currentIndex;
   const isTrial = user.clinic.subscriptionStatus === 'TRIAL';
 
+  const isEnterprise = targetTier === 'ENTERPRISE';
   const monthlyPrice = target.monthlyPriceInr;
   const yearlyPrice = yearlyPriceInr(targetTier);
   const monthlySavings = monthlyPrice * 12 - yearlyPrice;
   const effectivePrice = billingCycle === 'yearly' ? yearlyPrice : monthlyPrice;
 
-  const upgradeWaUrl = createPlanUpgradeWhatsAppUrl({
-    clinicName: user.clinic.name,
-    clinicSlug: user.clinic.slug,
-    doctorName: user.name,
-    planName: target.label,
-    interval: billingCycle,
-    amountInr: effectivePrice,
-  });
+  const upgradeWaUrl = isEnterprise
+    ? buildWhatsAppLink(
+        process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || '919400000000',
+        `Hi Nadi Team,\nI would like to inquire about the Enterprise Network plan for my clinic / hospital group:\n*Clinic:* ${user.clinic.name}\n*Clinic Code:* ${user.clinic.slug}\n*Doctor:* ${user.name}\n*Requirement:* Multi-branch & custom deployment\nPlease connect me with an enterprise specialist.`
+      )
+    : createPlanUpgradeWhatsAppUrl({
+        clinicName: user.clinic.name,
+        clinicSlug: user.clinic.slug,
+        doctorName: user.name,
+        planName: target.label,
+        interval: billingCycle,
+        amountInr: effectivePrice,
+      });
 
   return (
     <Modal
       open={true}
       onClose={onClose}
-      title={isDowngrade ? `Downgrade to ${target.shortName}` : `Upgrade to ${target.shortName}`}
-      description={target.tagline}
+      title={
+        isEnterprise
+          ? 'Enterprise Network'
+          : isDowngrade
+            ? `Downgrade to ${target.shortName}`
+            : `Upgrade to ${target.shortName}`
+      }
+      description={
+        isEnterprise
+          ? 'Custom deployment for hospital chains, multi-branch groups & branded networks.'
+          : target.tagline
+      }
       size="md"
       footer={
         <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button type="button" onClick={onClose} disabled={switching} className="btn btn-secondary">
             Cancel
           </button>
-          {isTrial && (
+          {isTrial && !isEnterprise && (
             <button
               type="button"
               disabled={switching}
@@ -1455,40 +1481,60 @@ function PlanUpgradeModal({
             className="btn btn-primary flex items-center justify-center gap-1.5"
           >
             <IconMessage className="h-4 w-4" />
-            <span>{isTrial ? 'Activate Paid Plan' : `Upgrade (₹${effectivePrice.toLocaleString('en-IN')})`}</span>
+            <span>
+              {isEnterprise
+                ? 'Talk to sales on WhatsApp'
+                : isTrial
+                  ? 'Activate Paid Plan'
+                  : `Upgrade (₹${effectivePrice.toLocaleString('en-IN')})`}
+            </span>
           </a>
         </div>
       }
     >
       <div className="flex flex-col gap-4">
-        {/* Billing cycle toggle */}
-        <div className="flex gap-1 rounded-[var(--r-card)] border border-line bg-surface-2 p-1.5">
-          <button
-            type="button"
-            onClick={() => setBillingCycle('monthly')}
-            className={`flex-1 rounded-[var(--r-control)] py-1.5 text-center text-[13px] font-medium transition-colors ${
-              billingCycle === 'monthly' ? 'bg-surface text-fg shadow-xs' : 'text-muted hover:text-fg'
-            }`}
-          >
-            Monthly (₹{monthlyPrice.toLocaleString('en-IN')}/mo)
-          </button>
-          <button
-            type="button"
-            onClick={() => setBillingCycle('yearly')}
-            className={`flex flex-1 items-center justify-center gap-1.5 rounded-[var(--r-control)] py-1.5 text-center text-[13px] font-medium transition-colors ${
-              billingCycle === 'yearly' ? 'bg-surface text-fg shadow-xs' : 'text-muted hover:text-fg'
-            }`}
-          >
-            <span>Yearly (₹{yearlyPrice.toLocaleString('en-IN')}/yr)</span>
-            <span className="badge badge-success px-1.5 py-0.5 text-[10.5px]">2 Mos Free</span>
-          </button>
-        </div>
-
-        {billingCycle === 'yearly' && monthlySavings > 0 && (
-          <div className="flex items-center gap-1.5 text-[12.5px] font-medium text-success">
-            <IconCheck className="h-3.5 w-3.5" />
-            <span>Save ₹{monthlySavings.toLocaleString('en-IN')} with annual billing (get 2 months free)</span>
+        {isEnterprise ? (
+          <div className="flex flex-col gap-2 rounded-[var(--r-card)] border border-brand/30 bg-brand-soft/40 p-4 text-[13.5px]">
+            <div className="flex items-center gap-2 font-semibold text-brand-ink">
+              <IconSparkle className="h-4 w-4 text-brand" />
+              <span>Tailored Enterprise Solutions</span>
+            </div>
+            <p className="text-[13px] text-muted">
+              Enterprise includes custom multi-branch routing, unlimited doctor & staff seats, white-label branding, dedicated SLA, and personal onboarding assistance.
+            </p>
           </div>
+        ) : (
+          <>
+            {/* Billing cycle toggle */}
+            <div className="flex gap-1 rounded-[var(--r-card)] border border-line bg-surface-2 p-1.5">
+              <button
+                type="button"
+                onClick={() => setBillingCycle('monthly')}
+                className={`flex-1 rounded-[var(--r-control)] py-1.5 text-center text-[13px] font-medium transition-colors ${
+                  billingCycle === 'monthly' ? 'bg-surface text-fg shadow-xs' : 'text-muted hover:text-fg'
+                }`}
+              >
+                Monthly (₹{monthlyPrice.toLocaleString('en-IN')}/mo)
+              </button>
+              <button
+                type="button"
+                onClick={() => setBillingCycle('yearly')}
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-[var(--r-control)] py-1.5 text-center text-[13px] font-medium transition-colors ${
+                  billingCycle === 'yearly' ? 'bg-surface text-fg shadow-xs' : 'text-muted hover:text-fg'
+                }`}
+              >
+                <span>Yearly (₹{yearlyPrice.toLocaleString('en-IN')}/yr)</span>
+                <span className="badge badge-success px-1.5 py-0.5 text-[10.5px]">2 Mos Free</span>
+              </button>
+            </div>
+
+            {billingCycle === 'yearly' && monthlySavings > 0 && (
+              <div className="flex items-center gap-1.5 text-[12.5px] font-medium text-success">
+                <IconCheck className="h-3.5 w-3.5" />
+                <span>Save ₹{monthlySavings.toLocaleString('en-IN')} with annual billing (get 2 months free)</span>
+              </div>
+            )}
+          </>
         )}
 
         {/* Plan comparison specs */}
