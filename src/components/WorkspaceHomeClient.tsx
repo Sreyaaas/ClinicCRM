@@ -8,6 +8,7 @@ import { formatClockTime, formatIstDate, formatIstLongDay, formatIstTime } from 
 import { getPlanFeatures } from '@/lib/plans';
 import { openNewPatient } from './AppShell';
 import {
+  IconAiBadge,
   IconAlert,
   IconCalendar,
   IconCamera,
@@ -614,11 +615,11 @@ export function WorkspaceHomeClient({
             )}
             <button
               type="button"
-              className="btn btn-secondary max-sm:flex-1 gap-1.5"
+              className="btn btn-secondary max-sm:flex-1 gap-2"
               onClick={() => setOcrModalOpen(true)}
               title="Scan a paper prescription"
             >
-              <IconCamera />
+              <IconAiBadge />
               <span>Scan prescription</span>
             </button>
             {showQueue ? (

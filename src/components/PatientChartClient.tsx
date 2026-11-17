@@ -10,6 +10,7 @@ import { getPlanFeatures, isDoctorRole } from '@/lib/plans';
 import { uploadPatientDocument, type DocTypeValue } from '@/lib/upload-document';
 import { buildVisitSummaryMessage, buildWhatsAppLink } from '@/lib/whatsapp';
 import {
+  IconAiBadge,
   IconAlert,
   IconArrowLeft,
   IconBilling,
@@ -402,10 +403,10 @@ export function PatientChartClient({
                 <button
                   type="button"
                   onClick={() => setOcrOpen(true)}
-                  className="btn btn-secondary max-sm:flex-1 gap-1.5"
+                  className="btn btn-secondary max-sm:flex-1 gap-2"
                   title="Scan a paper prescription"
                 >
-                  <IconCamera />
+                  <IconAiBadge />
                   <span>Scan prescription</span>
                 </button>
                 <button
@@ -1839,9 +1840,9 @@ function ConsultForm({
         <button
           type="button"
           onClick={() => setOcrModalOpen(true)}
-          className="btn btn-primary btn-sm max-sm:w-full"
+          className="btn btn-primary btn-sm max-sm:w-full gap-2"
         >
-          <IconCamera />
+          <IconAiBadge className="h-4 w-4" iconClassName="h-2.5 w-2.5" />
           Scan prescription
         </button>
       </div>
