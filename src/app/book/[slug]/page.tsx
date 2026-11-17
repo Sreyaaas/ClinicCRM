@@ -8,8 +8,16 @@ import { getPlanFeatures, isSubscriptionActive } from '@/lib/plans';
 import { prisma } from '@/lib/prisma';
 import { resolveThemeAccent } from '@/lib/themes';
 
-async function BookingLoader({ params }: { params: Promise<{ slug: string }> }) {
+async function BookingLoader({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>;
+  searchParams?: Promise<{ doctor?: string; doc?: string }>;
+}) {
   const { slug } = await params;
+  const sp = searchParams ? await searchParams : {};
+  const requestedDoctor = (sp.doctor || sp.doc || '').trim().toLowerCase();
 
   const clinic = await prisma.clinic.findUnique({
     where: { slug },
@@ -54,6 +62,18 @@ async function BookingLoader({ params }: { params: Promise<{ slug: string }> }) 
     );
   }
 
+  // Privacy-safe doctor routing: ensure requested doctor strictly belongs to THIS clinic.
+  // Changing query params to another doctor name/ID will NEVER redirect or leak outside this clinic.
+  const matchedDoctor = requestedDoctor
+    ? clinic.users.find(
+        (u) =>
+          u.id.toLowerCase() === requestedDoctor ||
+          u.name.toLowerCase().replace(/[^a-z0-9]/g, '') === requestedDoctor.replace(/[^a-z0-9]/g, '')
+      )
+    : null;
+
+  const initialDoctorId = matchedDoctor ? matchedDoctor.id : (clinic.users[0]?.id ?? '');
+
   const todayIst = getIstDayString();
   const weekStart = new Date(`${todayIst}T00:00:00.000+05:30`);
   const weekEnd = new Date(weekStart.getTime() + 8 * 24 * 60 * 60 * 1000);
@@ -85,6 +105,7 @@ async function BookingLoader({ params }: { params: Promise<{ slug: string }> }) 
       doctors={clinic.users}
       todayIst={todayIst}
       initialBookedSlots={initialBookedSlots}
+      initialDoctorId={initialDoctorId}
     />
   );
 }
@@ -94,7 +115,7 @@ export const metadata: Metadata = { title: 'Book appointment' };
 export default function PublicClinicBookingPage(props: PageProps<'/book/[slug]'>) {
   return (
     <Suspense fallback={<PageSkeleton />}>
-      <BookingLoader params={props.params} />
+      <BookingLoader params={props.params} searchParams={props.searchParams} />
     </Suspense>
   );
 }

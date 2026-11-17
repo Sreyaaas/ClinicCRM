@@ -14,6 +14,20 @@ export async function GET(request: Request) {
       return NextResponse.json({ bookedTimes: [] });
     }
 
+    // Verify doctor strictly belongs to the specified clinic to prevent cross-clinic probing
+    const doctor = await prisma.user.findFirst({
+      where: {
+        id: doctorId,
+        clinic: { slug: clinicSlug },
+        isActive: true,
+        role: { in: ['OWNER_DOCTOR', 'DOCTOR'] },
+      },
+      select: { id: true },
+    });
+    if (!doctor) {
+      return NextResponse.json({ bookedTimes: [], day, doctorId });
+    }
+
     const dayStart = new Date(`${day}T00:00:00.000+05:30`);
     const dayEnd = new Date(`${day}T23:59:59.999+05:30`);
 

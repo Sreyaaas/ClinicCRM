@@ -22,6 +22,7 @@ export function PublicBookingClient({
   doctors,
   todayIst,
   initialBookedSlots = [],
+  initialDoctorId,
 }: {
   clinic: {
     slug: string;
@@ -35,8 +36,13 @@ export function PublicBookingClient({
   doctors: Array<{ id: string; name: string; specialty: string | null; consultationFee: number | null }>;
   todayIst: string;
   initialBookedSlots?: string[];
+  initialDoctorId?: string;
 }) {
-  const [doctorId, setDoctorId] = useState(doctors[0]?.id ?? '');
+  const safeInitialDoc =
+    initialDoctorId && doctors.some((d) => d.id === initialDoctorId)
+      ? initialDoctorId
+      : (doctors[0]?.id ?? '');
+  const [doctorId, setDoctorId] = useState(safeInitialDoc);
   const [day, setDay] = useState(todayIst);
   const [time, setTime] = useState('');
   const [patientName, setPatientName] = useState('');

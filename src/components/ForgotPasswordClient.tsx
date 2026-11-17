@@ -3,13 +3,19 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { BrandLogo } from '@/components/Brand';
-import { IconAlert, IconArrowRight, IconCheck } from '@/components/Icons';
+import { IconAlert, IconArrowRight, IconCheck, IconMessage } from '@/components/Icons';
 
 export function ForgotPasswordClient() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const supportPhone = process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || '919400000000';
+  const waMessage = email
+    ? `Hi Nadi Support, I need help resetting the password for my clinic account (${email}).`
+    : `Hi Nadi Support, I need help resetting the password for my clinic account.`;
+  const whatsappUrl = `https://wa.me/${supportPhone}?text=${encodeURIComponent(waMessage)}`;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -26,7 +32,7 @@ export function ForgotPasswordClient() {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        setError(data.error || 'Could not send reset link. Please try again.');
+        setError(data.error || 'Could not send reset link. Please try again or use WhatsApp below.');
         setLoading(false);
         return;
       }
@@ -34,7 +40,7 @@ export function ForgotPasswordClient() {
       setSent(true);
       setLoading(false);
     } catch {
-      setError('Network error. Please check your connection.');
+      setError('Network error. Please check your connection or contact WhatsApp support.');
       setLoading(false);
     }
   }
@@ -48,7 +54,7 @@ export function ForgotPasswordClient() {
         </Link>
       </header>
 
-      <main className="mx-auto flex w-full max-w-[420px] flex-1 flex-col justify-center py-12">
+      <main className="mx-auto flex w-full max-w-[440px] flex-1 flex-col justify-center py-10">
         <div className="card flex flex-col p-6 sm:p-8 shadow-sm">
           {sent ? (
             <div className="flex flex-col items-center text-center py-2">
@@ -59,9 +65,27 @@ export function ForgotPasswordClient() {
               <p className="mt-2 text-[14px] text-muted leading-relaxed">
                 If an account exists for <strong className="font-semibold text-fg">{email}</strong>, we have sent a secure link to reset your password.
               </p>
-              <div className="mt-6 rounded-lg bg-surface-2 p-3 text-[12.5px] text-muted w-full">
+              <div className="mt-6 rounded-lg bg-surface-2 p-3 text-[12.5px] text-muted w-full text-left">
                 Link expires in <strong>15 minutes</strong>. Don’t see it? Check your spam folder.
               </div>
+
+              {/* Instant WhatsApp fallback if email isn't received */}
+              <div className="mt-5 w-full rounded-xl border border-line bg-surface-2/70 p-4 text-left">
+                <p className="text-[13px] font-semibold text-fg">Didn’t receive the email?</p>
+                <p className="mt-0.5 text-[12px] text-muted">
+                  Email verification is in Beta. Get your password reset instantly via verified WhatsApp support:
+                </p>
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#25D366] px-4 text-[13.5px] font-semibold text-white shadow-sm transition-colors hover:bg-[#20bd5a]"
+                >
+                  <IconMessage className="h-4 w-4" />
+                  Chat on WhatsApp &rarr;
+                </a>
+              </div>
+
               <div className="mt-6 flex flex-col gap-2.5 w-full">
                 <button
                   type="button"
@@ -71,7 +95,7 @@ export function ForgotPasswordClient() {
                   }}
                   className="btn btn-secondary w-full"
                 >
-                  Send to another email
+                  Try another email
                 </button>
                 <Link href="/login" className="btn btn-ghost w-full">
                   Return to sign in
@@ -80,19 +104,59 @@ export function ForgotPasswordClient() {
             </div>
           ) : (
             <>
-              <h1 className="text-[24px] font-semibold tracking-tight text-fg">Forgot password?</h1>
-              <p className="mt-1.5 text-[14px] text-muted">
-                Enter your clinic email and we’ll send you a secure link to reset your password.
+              <div className="mb-3 flex items-center justify-between">
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:text-amber-400">
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  Beta Stage
+                </span>
+                <span className="text-[12px] text-muted">Instant assistance</span>
+              </div>
+
+              <h1 className="text-[24px] font-semibold tracking-tight text-fg">Reset password</h1>
+              <p className="mt-1.5 text-[14px] text-muted leading-relaxed">
+                Choose between instant WhatsApp concierge verification or email reset link.
               </p>
 
+              {/* Instant WhatsApp Reset Card (Primary until custom domain is linked) */}
+              <div className="mt-5 rounded-xl border border-line bg-surface-2/80 p-4">
+                <div className="flex items-start gap-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#25D366]/15 text-[#25D366]">
+                    <IconMessage className="h-5 w-5" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[13.5px] font-semibold text-fg">Instant WhatsApp Reset</p>
+                    <p className="mt-0.5 text-[12px] text-muted leading-normal">
+                      Connect with our clinic support team to verify your identity and restore access in 2 minutes.
+                    </p>
+                  </div>
+                </div>
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3.5 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#25D366] px-4 text-[13.5px] font-semibold text-white shadow-sm transition-colors hover:bg-[#20bd5a]"
+                >
+                  <IconMessage className="h-4 w-4" />
+                  Reset via WhatsApp Concierge
+                </a>
+              </div>
+
+              <div className="my-5 flex items-center gap-3">
+                <div className="h-px flex-1 bg-line" />
+                <span className="text-[11.5px] font-medium uppercase tracking-wider text-muted">
+                  Or receive reset email
+                </span>
+                <div className="h-px flex-1 bg-line" />
+              </div>
+
               {error && (
-                <div role="alert" className="alert alert-danger mt-5">
+                <div role="alert" className="alert alert-danger mb-4">
                   <IconAlert />
                   <span>{error}</span>
                 </div>
               )}
 
-              <form onSubmit={submit} className="mt-6 flex flex-col gap-4">
+              <form onSubmit={submit} className="flex flex-col gap-4">
                 <div className="field">
                   <label htmlFor="fp-email" className="label">
                     Email address
@@ -114,9 +178,9 @@ export function ForgotPasswordClient() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="btn btn-primary h-11 w-full font-semibold mt-2"
+                  className="btn btn-secondary h-11 w-full font-semibold mt-1"
                 >
-                  {loading ? 'Sending link…' : 'Send reset link'}
+                  {loading ? 'Sending email…' : 'Send email reset link'}
                   {!loading && <IconArrowRight />}
                 </button>
               </form>

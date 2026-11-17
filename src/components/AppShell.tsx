@@ -188,6 +188,24 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
           },
         ]
       : []),
+    ...(features.publicBooking && user.clinic.enablePublicBooking
+      ? [
+          {
+            label: 'Copy booking link',
+            hint: 'Share public appointment page',
+            icon: IconCalendar,
+            run: async () => {
+              const url = `${window.location.origin}/book/${user.clinic.slug}`;
+              try {
+                await navigator.clipboard.writeText(url);
+                toast('Booking link copied', { action: { label: 'Open', href: url } });
+              } catch {
+                toast(url, { tone: 'info' });
+              }
+            },
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -405,6 +423,32 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
               </p>
             </div>
           </div>
+
+          {features.publicBooking && user.clinic.enablePublicBooking && (
+            <div className="rounded-xl border border-line bg-surface-2/80 p-3 flex items-center justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="text-[12.5px] font-semibold text-fg">Public booking link</p>
+                <p className="truncate font-mono text-[11.5px] text-muted">
+                  /book/{user.clinic.slug}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  const url = `${window.location.origin}/book/${user.clinic.slug}`;
+                  try {
+                    await navigator.clipboard.writeText(url);
+                    toast('Booking link copied', { action: { label: 'Open', href: url } });
+                  } catch {
+                    toast(url, { tone: 'info' });
+                  }
+                }}
+                className="btn btn-primary btn-sm h-8 px-3 text-[12px] shrink-0"
+              >
+                Copy link
+              </button>
+            </div>
+          )}
 
           {moreItems.length > 0 && (
             <ul className="card list overflow-hidden">

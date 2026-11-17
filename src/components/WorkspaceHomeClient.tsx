@@ -503,6 +503,25 @@ export function WorkspaceHomeClient({
               Today
             </button>
           )}
+          {features.publicBooking && user.clinic.enablePublicBooking && (
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm h-8 gap-1.5 px-2.5 text-[12px]"
+              title="Copy patient booking link"
+              onClick={async () => {
+                const url = `${window.location.origin}/book/${user.clinic.slug}`;
+                try {
+                  await navigator.clipboard.writeText(url);
+                  toast('Booking link copied', { action: { label: 'Open', href: url } });
+                } catch {
+                  toast(url, { tone: 'info' });
+                }
+              }}
+            >
+              <IconCalendar className="h-3.5 w-3.5 text-muted" />
+              <span>Copy booking link</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -516,9 +535,29 @@ export function WorkspaceHomeClient({
               : 'Book a slot for a patient to see it here.'
           }
           action={
-            <button type="button" className="btn btn-secondary" onClick={() => setAction('book')}>
-              Book appointment
-            </button>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <button type="button" className="btn btn-secondary" onClick={() => setAction('book')}>
+                Book appointment
+              </button>
+              {features.publicBooking && user.clinic.enablePublicBooking && (
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={async () => {
+                    const url = `${window.location.origin}/book/${user.clinic.slug}`;
+                    try {
+                      await navigator.clipboard.writeText(url);
+                      toast('Booking link copied', { action: { label: 'Open', href: url } });
+                    } catch {
+                      toast(url, { tone: 'info' });
+                    }
+                  }}
+                >
+                  <IconCalendar className="h-4 w-4" />
+                  Copy booking link
+                </button>
+              )}
+            </div>
           }
         />
       ) : (
