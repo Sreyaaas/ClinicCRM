@@ -10,7 +10,12 @@ import { prisma } from '@/lib/prisma';
 
 const createPatientSchema = z.object({
   name: z.string().trim().min(1, 'Patient name is required').max(120),
-  phone: z.string().trim().min(6, 'Phone number is required').max(20),
+  phone: z
+    .string()
+    .trim()
+    .max(20)
+    .optional()
+    .transform((v) => (v && v.length >= 6 ? v : '0000000000')),
   ageYears: z.number().int().min(0).max(130).nullable().optional(),
   gender: z.enum(['MALE', 'FEMALE', 'OTHER']).nullable().optional(),
   place: z.string().trim().max(100).nullable().optional(),

@@ -103,9 +103,14 @@ export function handleApiError(error: unknown): NextResponse {
 
   if (error instanceof ZodError) {
     const firstIssue = error.issues[0];
+    let msg = firstIssue ? `${firstIssue.path.join('.') || 'field'}: ${firstIssue.message}` : 'Validation failed.';
+    if (firstIssue && (firstIssue as { received?: string }).received === 'undefined') {
+      const field = firstIssue.path.join('.') || 'field';
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} is required.`;
+    }
     return NextResponse.json(
       {
-        error: firstIssue ? `${firstIssue.path.join('.') || 'field'}: ${firstIssue.message}` : 'Validation failed.',
+        error: msg,
         code: 'VALIDATION_ERROR',
         issues: error.issues,
       },

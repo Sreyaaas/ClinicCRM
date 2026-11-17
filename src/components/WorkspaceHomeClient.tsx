@@ -212,11 +212,13 @@ export function WorkspaceHomeClient({
       }
     }
     // Register as new patient directly
+    const phoneVal = pInfo?.phone?.replace(/\D/g, '') || '';
+    const validPhone = phoneVal.length >= 6 ? phoneVal : '0000000000';
     const createRes = await apiJson<{ patient: { id: string; name: string } }>('/api/patients', {
       method: 'POST',
       body: {
         name: pInfo?.name || 'Prescription Patient',
-        phone: pInfo?.phone || undefined,
+        phone: validPhone,
         gender: pInfo?.gender || 'OTHER',
         ageYears: pInfo?.ageYears || undefined,
         place: pInfo?.place || undefined,
