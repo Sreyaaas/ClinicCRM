@@ -31,6 +31,9 @@ export interface PlanDefaults {
   tagline: string;
   targetAudience: string;
   monthlyPriceInr: number;
+  promoMonthlyPriceInr?: number;
+  regularYearlyPerMonth?: number;
+  promoBadge?: string;
   maxDoctors: number;
   maxStaff: number;
   maxPatients: number | null;
@@ -99,7 +102,10 @@ export const PLAN_DEFAULTS: Record<PlanTier, PlanDefaults> = {
     badge: 'For 1 Doctor',
     tagline: 'Everything one busy doctor needs on mobile & laptop',
     targetAudience: 'Independent doctors & specialists without front-desk staff',
-    monthlyPriceInr: 299,
+    monthlyPriceInr: 349,
+    regularYearlyPerMonth: 299,
+    promoMonthlyPriceInr: 249,
+    promoBadge: 'Limited time offer',
     maxDoctors: 1,
     maxStaff: 0,
     maxPatients: null,
@@ -284,8 +290,12 @@ export function isSubscriptionActive(
   return false;
 }
 
-/** Yearly billing = 10 × monthly (two months free). */
+/** Yearly billing = 10 × monthly (two months free), or promotional annual rate. */
 export function yearlyPriceInr(tier: PlanTier): number {
+  if (tier === 'SOLO') {
+    // Limited time offer: ₹249/mo billed yearly = ₹2,988 (Save ₹1,200)
+    return 2988;
+  }
   return (PLAN_DEFAULTS[tier]?.monthlyPriceInr ?? 0) * 10;
 }
 

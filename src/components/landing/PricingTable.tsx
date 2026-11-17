@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { formatStorageMb, PLAN_DEFAULTS, PLAN_ORDER, type PlanFeatureKey } from '@/lib/plans';
 import { buildWhatsAppLink } from '@/lib/whatsapp';
+import { IconSparkle } from '../Icons';
 
 type Cell = boolean | string;
 
@@ -67,18 +68,34 @@ function Mark({ v }: { v: Cell }) {
 
 function price(t: PlanTier, yearly: boolean) {
   if (t === 'ENTERPRISE') {
-    return { main: 'Custom', sub: 'Talk to sales' };
+    return { main: 'Custom', sub: 'Talk to sales', strikethrough: null as string | null, badge: null as string | null };
   }
   if (t === 'CLINIC' || t === 'GROWTH') {
-    return { main: 'Price to be disclosed', sub: '14-day trial included' };
+    return { main: 'Price to be disclosed', sub: '14-day trial included', strikethrough: null, badge: null };
+  }
+  if (t === 'SOLO') {
+    if (yearly) {
+      return {
+        main: '₹249',
+        sub: '₹2,988 billed yearly (₹249/mo · Save ₹1,200)',
+        strikethrough: '₹299',
+        badge: 'Limited time offer',
+      };
+    }
+    return {
+      main: '₹349',
+      sub: 'per month · Cancel anytime',
+      strikethrough: null,
+      badge: null,
+    };
   }
   const m = PLAN_DEFAULTS[t].monthlyPriceInr;
-  if (m === 0) return { main: '₹0', sub: 'Free forever' };
+  if (m === 0) return { main: '₹0', sub: 'Free forever', strikethrough: null, badge: null };
   if (yearly) {
     const perMonth = Math.round((m * 10) / 12);
-    return { main: `₹${perMonth.toLocaleString('en-IN')}`, sub: `₹${(m * 10).toLocaleString('en-IN')} billed yearly` };
+    return { main: `₹${perMonth.toLocaleString('en-IN')}`, sub: `₹${(m * 10).toLocaleString('en-IN')} billed yearly`, strikethrough: null, badge: null };
   }
-  return { main: `₹${m.toLocaleString('en-IN')}`, sub: 'per month' };
+  return { main: `₹${m.toLocaleString('en-IN')}`, sub: 'per month', strikethrough: null, badge: null };
 }
 
 export function PricingTable() {
@@ -181,14 +198,33 @@ export function PricingTable() {
                       </>
                     ) : (
                       <>
-                        <p className="mt-5 flex items-baseline gap-1">
+                        {t === 'SOLO' && yearly && (
+                          <div className="mt-3 -mb-1">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-semibold text-brand-ink">
+                              <IconSparkle className="h-3 w-3" />
+                              Limited time offer
+                            </span>
+                          </div>
+                        )}
+                        <p className={`${t === 'SOLO' && yearly ? 'mt-2' : 'mt-5'} flex items-baseline gap-1.5`}>
+                          {t === 'SOLO' && yearly && (
+                            <span className="text-[18px] text-muted line-through font-normal tnum">
+                              ₹299
+                            </span>
+                          )}
                           <span className="text-[32px] font-bold leading-none tracking-[-0.035em] tnum">
-                            {`₹${perMonth.toLocaleString('en-IN')}`}
+                            {t === 'SOLO' ? (yearly ? '₹249' : '₹349') : `₹${perMonth.toLocaleString('en-IN')}`}
                           </span>
                           <span className={`text-[13px] ${p.recommended ? 'opacity-65' : 'text-muted'}`}>/mo</span>
                         </p>
                         <p className={`mt-1.5 h-4 text-[12px] tnum ${p.recommended ? 'opacity-65' : 'text-muted'}`}>
-                          {yearly ? `₹${(m * 10).toLocaleString('en-IN')} a year` : 'Cancel anytime'}
+                          {t === 'SOLO'
+                            ? yearly
+                              ? '₹2,988 a year · Save ₹1,200'
+                              : 'Cancel anytime'
+                            : yearly
+                              ? `₹${(m * 10).toLocaleString('en-IN')} a year`
+                              : 'Cancel anytime'}
                         </p>
                         <Link
                           href={`/register?tier=${t}`}
@@ -262,13 +298,28 @@ export function PricingTable() {
           return (
             <div className="mt-4 overflow-hidden rounded-2xl border border-line bg-surface">
               <div className="p-5">
-                <p className="text-[15px] font-semibold">{p.label}</p>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[15px] font-semibold">{p.label}</p>
+                  {pr.badge && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-semibold text-brand-ink">
+                      <IconSparkle className="h-2.5 w-2.5" />
+                      {pr.badge}
+                    </span>
+                  )}
+                </div>
                 <p className="mt-1 text-[13.5px] text-muted">{p.tagline}</p>
-                <p className="mt-4 text-[24px] sm:text-[32px] font-semibold tracking-[-0.03em] tnum">
-                  {pr.main}
-                  {t === 'SOLO' && p.monthlyPriceInr > 0 && <span className="text-[14px] font-normal text-muted"> /month</span>}
-                </p>
-                <p className="text-[12.5px] text-muted">{t === 'ENTERPRISE' ? 'Talk to sales for hospital chains' : t === 'CLINIC' || t === 'GROWTH' ? '14-day free trial included' : yearly && p.monthlyPriceInr > 0 ? pr.sub : p.monthlyPriceInr === 0 ? pr.sub : 'billed monthly'}</p>
+                <div className="mt-4 flex items-baseline gap-2">
+                  {pr.strikethrough && (
+                    <span className="text-[18px] text-muted line-through font-normal tnum">
+                      {pr.strikethrough}
+                    </span>
+                  )}
+                  <p className="text-[24px] sm:text-[32px] font-semibold tracking-[-0.03em] tnum">
+                    {pr.main}
+                    {t === 'SOLO' && <span className="text-[14px] font-normal text-muted"> /month</span>}
+                  </p>
+                </div>
+                <p className="text-[12.5px] text-muted">{pr.sub}</p>
                 {t === 'ENTERPRISE' ? (
                   <a
                     href={buildWhatsAppLink(

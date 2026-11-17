@@ -10,13 +10,13 @@ import {
 } from '../src/lib/plans';
 
 test('Plan tiers and pricing: affordable tiers are correctly defined', () => {
-  assert.strictEqual(PLAN_DEFAULTS.SOLO.monthlyPriceInr, 299);
+  assert.strictEqual(PLAN_DEFAULTS.SOLO.monthlyPriceInr, 349);
   assert.strictEqual(PLAN_DEFAULTS.CLINIC.monthlyPriceInr, 699);
   assert.strictEqual(PLAN_DEFAULTS.GROWTH.monthlyPriceInr, 1299);
   assert.strictEqual(PLAN_DEFAULTS.ENTERPRISE.monthlyPriceInr, 2499);
 
-  // Yearly pricing = 10x monthly
-  assert.strictEqual(yearlyPriceInr('SOLO'), 2990);
+  // Yearly pricing (Solo Pro promotional annual: ₹249/mo = 2988; others 10x monthly)
+  assert.strictEqual(yearlyPriceInr('SOLO'), 2988);
   assert.strictEqual(yearlyPriceInr('CLINIC'), 6990);
   assert.strictEqual(yearlyPriceInr('GROWTH'), 12990);
   assert.strictEqual(yearlyPriceInr('ENTERPRISE'), 24990);

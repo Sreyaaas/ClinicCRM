@@ -161,8 +161,8 @@ const SettingsNavContext = createContext<{
   selectTab: (tab: SettingsTabId) => void;
   openPlanUpgrade: (targetTier?: PlanTier) => void;
 }>({
-  selectTab: () => {},
-  openPlanUpgrade: () => {},
+  selectTab: () => { },
+  openPlanUpgrade: () => { },
 });
 
 function Locked({
@@ -282,9 +282,8 @@ export function SettingsClient({
                     type="button"
                     aria-current={tab === t.id ? 'page' : undefined}
                     onClick={() => selectTab(t.id)}
-                    className={`flex h-9 w-full items-center gap-2.5 whitespace-nowrap rounded-[var(--r-control)] px-3 text-left text-[13.5px] font-medium transition-colors [&>svg]:h-4 [&>svg]:w-4 ${
-                      tab === t.id ? 'bg-surface text-fg shadow-card ring-1 ring-line lg:bg-brand-soft lg:text-brand-ink lg:shadow-none lg:ring-0' : 'text-muted hover:bg-surface-2 hover:text-fg'
-                    }`}
+                    className={`flex h-9 w-full items-center gap-2.5 whitespace-nowrap rounded-[var(--r-control)] px-3 text-left text-[13.5px] font-medium transition-colors [&>svg]:h-4 [&>svg]:w-4 ${tab === t.id ? 'bg-surface text-fg shadow-card ring-1 ring-line lg:bg-brand-soft lg:text-brand-ink lg:shadow-none lg:ring-0' : 'text-muted hover:bg-surface-2 hover:text-fg'
+                      }`}
                   >
                     {t.icon}
                     {t.label}
@@ -347,11 +346,11 @@ function ProfileTab({ user }: { user: SessionUser }) {
         preferredWhatsappLang: lang === 'default' ? null : lang,
         ...(isDoctor
           ? {
-              specialty: specialty || null,
-              registrationNo: regNo || null,
-              consultationFee: fee ? Number.parseInt(fee, 10) : null,
-              defaultCaptureMode: capture,
-            }
+            specialty: specialty || null,
+            registrationNo: regNo || null,
+            consultationFee: fee ? Number.parseInt(fee, 10) : null,
+            defaultCaptureMode: capture,
+          }
           : {}),
       },
     });
@@ -432,9 +431,8 @@ function ProfileTab({ user }: { user: SessionUser }) {
               ).map(([v, l, h]) => (
                 <label
                   key={v}
-                  className={`flex cursor-pointer flex-col gap-0.5 rounded-[var(--r-control)] border p-3 transition-colors ${
-                    capture === v ? 'border-brand bg-brand-softer' : 'border-line hover:bg-surface-2'
-                  }`}
+                  className={`flex cursor-pointer flex-col gap-0.5 rounded-[var(--r-control)] border p-3 transition-colors ${capture === v ? 'border-brand bg-brand-softer' : 'border-line hover:bg-surface-2'
+                    }`}
                 >
                   <input type="radio" name="capture" className="sr-only" checked={capture === v} onChange={() => setCapture(v)} />
                   <span className="text-[13.5px] font-medium">{l}</span>
@@ -769,9 +767,8 @@ function AppearanceTab({ user, isOwner }: { user: SessionUser; isOwner: boolean 
                     type="button"
                     onClick={() => setPreset(t.id)}
                     aria-pressed={selected}
-                    className={`relative flex items-center gap-3 rounded-[var(--r-control)] border p-3 text-left transition-colors ${
-                      selected ? 'border-transparent ring-2 ring-[var(--brand)]' : 'border-line hover:bg-surface-2'
-                    }`}
+                    className={`relative flex items-center gap-3 rounded-[var(--r-control)] border p-3 text-left transition-colors ${selected ? 'border-transparent ring-2 ring-[var(--brand)]' : 'border-line hover:bg-surface-2'
+                      }`}
                   >
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full" style={{ background: t.color }}>
                       {selected && <IconCheck className="h-4 w-4 text-white" />}
@@ -784,9 +781,8 @@ function AppearanceTab({ user, isOwner }: { user: SessionUser; isOwner: boolean 
                 );
               })}
               <label
-                className={`relative flex items-center gap-3 rounded-[var(--r-control)] border p-3 transition-colors ${
-                  features.whiteLabelBranding ? 'cursor-pointer hover:bg-surface-2' : 'cursor-not-allowed opacity-50'
-                } ${preset === 'custom' ? 'border-transparent ring-2 ring-[var(--brand)]' : 'border-line'}`}
+                className={`relative flex items-center gap-3 rounded-[var(--r-control)] border p-3 transition-colors ${features.whiteLabelBranding ? 'cursor-pointer hover:bg-surface-2' : 'cursor-not-allowed opacity-50'
+                  } ${preset === 'custom' ? 'border-transparent ring-2 ring-[var(--brand)]' : 'border-line'}`}
               >
                 <input
                   type="color"
@@ -1320,9 +1316,13 @@ function PlanTab({
             ? 'Enterprise Network · Custom deployment'
             : user.clinic.planTier === 'CLINIC' || user.clinic.planTier === 'GROWTH'
               ? `${current.shortName} · Price to be disclosed`
-              : user.clinic.subscriptionStatus === 'TRIAL' && user.clinic.trialDaysLeft !== null
-                ? `Free trial · ${user.clinic.trialDaysLeft} days left`
-                : `₹${current.monthlyPriceInr.toLocaleString('en-IN')} per month`
+              : user.clinic.planTier === 'SOLO'
+                ? user.clinic.subscriptionStatus === 'TRIAL' && user.clinic.trialDaysLeft !== null
+                  ? `Free trial · ${user.clinic.trialDaysLeft} days left (₹249/mo limited time offer)`
+                  : 'Solo Pro · ₹249/mo (Limited time offer) or ₹349/mo'
+                : user.clinic.subscriptionStatus === 'TRIAL' && user.clinic.trialDaysLeft !== null
+                  ? `Free trial · ${user.clinic.trialDaysLeft} days left`
+                  : `₹${current.monthlyPriceInr.toLocaleString('en-IN')} per month`
         }
       >
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -1360,16 +1360,29 @@ function PlanTab({
                 <h3 className="text-[15px] font-semibold">{p.label}</h3>
                 {isCurrent ? <Badge tone="brand">Current</Badge> : p.recommended ? <Badge>Popular</Badge> : null}
               </div>
-              <p className="mt-2 text-[22px] font-semibold tracking-[-0.02em] tnum">
-                {tier === 'ENTERPRISE'
-                  ? 'Custom'
-                  : tier === 'CLINIC' || tier === 'GROWTH'
-                    ? 'Price to be disclosed'
-                    : p.monthlyPriceInr === 0
-                      ? 'Free'
-                      : `₹${p.monthlyPriceInr.toLocaleString('en-IN')}`}
-                {tier === 'SOLO' && p.monthlyPriceInr > 0 && <span className="text-[13px] font-normal text-muted"> /month</span>}
-              </p>
+              <div className="mt-2">
+                {tier === 'ENTERPRISE' ? (
+                  <p className="text-[22px] font-semibold tracking-[-0.02em] tnum">Custom</p>
+                ) : tier === 'CLINIC' || tier === 'GROWTH' ? (
+                  <p className="text-[22px] font-semibold tracking-[-0.02em] tnum">Price to be disclosed</p>
+                ) : tier === 'SOLO' ? (
+                  <div>
+                    <span className="inline-block rounded bg-brand-softer px-1.5 py-0.5 text-[10.5px] font-semibold text-brand">
+                      Limited time offer
+                    </span>
+                    <div className="mt-1 flex items-baseline gap-1.5">
+                      <span className="text-[15px] text-muted line-through font-normal">₹299</span>
+                      <span className="text-[22px] font-semibold tracking-[-0.02em] tnum text-fg">₹249</span>
+                      <span className="text-[13px] font-normal text-muted">/month</span>
+                    </div>
+                    <p className="text-[11.5px] text-muted">₹349/mo billed monthly · ₹2,988 yearly</p>
+                  </div>
+                ) : (
+                  <p className="text-[22px] font-semibold tracking-[-0.02em] tnum">
+                    {p.monthlyPriceInr === 0 ? 'Free' : `₹${p.monthlyPriceInr.toLocaleString('en-IN')}`}
+                  </p>
+                )}
+              </div>
               <p className="mt-1 text-[13px] text-muted">
                 {tier === 'ENTERPRISE'
                   ? 'Talk to sales for custom pricing'
@@ -1443,17 +1456,17 @@ function PlanUpgradeModal({
 
   const upgradeWaUrl = isCustomPricing
     ? buildWhatsAppLink(
-        process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || '919400000000',
-        `Hi Nadi Team,\nI would like to inquire about the ${target.label} plan for my clinic:\n*Clinic:* ${user.clinic.name}\n*Clinic Code:* ${user.clinic.slug}\n*Doctor:* ${user.name}\n*Requirement:* ${target.label} setup & pricing details\nPlease connect me with a specialist.`
-      )
+      process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || '919400000000',
+      `Hi Nadi Team,\nI would like to inquire about the ${target.label} plan for my clinic:\n*Clinic:* ${user.clinic.name}\n*Clinic Code:* ${user.clinic.slug}\n*Doctor:* ${user.name}\n*Requirement:* ${target.label} setup & pricing details\nPlease connect me with a specialist.`
+    )
     : createPlanUpgradeWhatsAppUrl({
-        clinicName: user.clinic.name,
-        clinicSlug: user.clinic.slug,
-        doctorName: user.name,
-        planName: target.label,
-        interval: billingCycle,
-        amountInr: effectivePrice,
-      });
+      clinicName: user.clinic.name,
+      clinicSlug: user.clinic.slug,
+      doctorName: user.name,
+      planName: target.label,
+      interval: billingCycle,
+      amountInr: effectivePrice,
+    });
 
   return (
     <Modal
@@ -1523,28 +1536,32 @@ function PlanUpgradeModal({
               <button
                 type="button"
                 onClick={() => setBillingCycle('monthly')}
-                className={`flex-1 rounded-[var(--r-control)] py-1.5 text-center text-[13px] font-medium transition-colors ${
-                  billingCycle === 'monthly' ? 'bg-surface text-fg shadow-xs' : 'text-muted hover:text-fg'
-                }`}
+                className={`flex-1 rounded-[var(--r-control)] py-1.5 text-center text-[13px] font-medium transition-colors ${billingCycle === 'monthly' ? 'bg-surface text-fg shadow-xs' : 'text-muted hover:text-fg'
+                  }`}
               >
                 Monthly (₹{monthlyPrice.toLocaleString('en-IN')}/mo)
               </button>
               <button
                 type="button"
                 onClick={() => setBillingCycle('yearly')}
-                className={`flex flex-1 items-center justify-center gap-1.5 rounded-[var(--r-control)] py-1.5 text-center text-[13px] font-medium transition-colors ${
-                  billingCycle === 'yearly' ? 'bg-surface text-fg shadow-xs' : 'text-muted hover:text-fg'
-                }`}
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-[var(--r-control)] py-1.5 text-center text-[13px] font-medium transition-colors ${billingCycle === 'yearly' ? 'bg-surface text-fg shadow-xs' : 'text-muted hover:text-fg'
+                  }`}
               >
-                <span>Yearly (₹{yearlyPrice.toLocaleString('en-IN')}/yr)</span>
-                <span className="badge badge-success px-1.5 py-0.5 text-[10.5px]">2 Mos Free</span>
+                <span>Yearly (₹{yearlyPrice.toLocaleString('en-IN')}/yr{targetTier === 'SOLO' ? ' · ₹249/mo' : ''})</span>
+                <span className="badge badge-success px-1.5 py-0.5 text-[10.5px]">
+                  {targetTier === 'SOLO' ? 'Limited time offer' : '2 Mos Free'}
+                </span>
               </button>
             </div>
 
             {billingCycle === 'yearly' && monthlySavings > 0 && (
               <div className="flex items-center gap-1.5 text-[12.5px] font-medium text-success">
                 <IconCheck className="h-3.5 w-3.5" />
-                <span>Save ₹{monthlySavings.toLocaleString('en-IN')} with annual billing (get 2 months free)</span>
+                <span>
+                  {targetTier === 'SOLO'
+                    ? 'Limited time offer: ₹249/month · Save ₹1,200 with annual billing'
+                    : `Save ₹${monthlySavings.toLocaleString('en-IN')} with annual billing (get 2 months free)`}
+                </span>
               </div>
             )}
           </>

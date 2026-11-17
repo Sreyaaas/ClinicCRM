@@ -93,9 +93,11 @@ export function RegisterClient({ initialTier }: { initialTier: PlanTier }) {
                 ? 'Custom'
                 : planTier === 'CLINIC' || planTier === 'GROWTH'
                   ? 'Price to be disclosed'
-                  : plan.monthlyPriceInr === 0
-                    ? 'Free'
-                    : `₹${plan.monthlyPriceInr}/mo`}
+                  : planTier === 'SOLO'
+                    ? '₹249/mo · Limited time offer'
+                    : plan.monthlyPriceInr === 0
+                      ? 'Free'
+                      : `₹${plan.monthlyPriceInr}/mo`}
             </span>
           </div>
           <a
@@ -314,17 +316,28 @@ export function RegisterClient({ initialTier }: { initialTier: PlanTier }) {
                           <span className="block truncate text-[12px] text-muted">{p.tagline}</span>
                         </div>
                         <div className="text-right shrink-0">
-                          <span className="text-[12.5px] font-semibold text-fg">
-                            {tier === 'ENTERPRISE'
-                              ? 'Custom'
-                              : tier === 'CLINIC' || tier === 'GROWTH'
-                                ? 'Price to be disclosed'
-                                : p.monthlyPriceInr === 0
-                                  ? 'Free'
-                                  : `₹${p.monthlyPriceInr.toLocaleString('en-IN')}`}
-                          </span>
-                          {tier === 'SOLO' && (
-                            <span className="block text-[10.5px] text-muted">/month</span>
+                          {tier === 'SOLO' ? (
+                            <div>
+                              <span className="inline-block rounded bg-brand-softer px-1.5 py-0.5 text-[10px] font-semibold text-brand">
+                                Limited time offer
+                              </span>
+                              <div className="flex items-baseline justify-end gap-1 mt-0.5">
+                                <span className="text-[11px] text-muted line-through">₹299</span>
+                                <span className="text-[13px] font-bold text-fg">₹249</span>
+                                <span className="text-[10.5px] text-muted">/mo</span>
+                              </div>
+                              <span className="block text-[10px] text-muted">₹349 monthly</span>
+                            </div>
+                          ) : (
+                            <span className="text-[12.5px] font-semibold text-fg">
+                              {tier === 'ENTERPRISE'
+                                ? 'Custom'
+                                : tier === 'CLINIC' || tier === 'GROWTH'
+                                  ? 'Price to be disclosed'
+                                  : p.monthlyPriceInr === 0
+                                    ? 'Free'
+                                    : `₹${p.monthlyPriceInr.toLocaleString('en-IN')}`}
+                            </span>
                           )}
                         </div>
                       </label>

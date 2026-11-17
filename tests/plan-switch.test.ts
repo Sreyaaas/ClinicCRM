@@ -7,10 +7,15 @@ test('Plan Switch: Annual billing offers 2 months free (10x monthly price)', () 
   for (const tier of ['SOLO', 'CLINIC', 'GROWTH', 'ENTERPRISE'] as const) {
     const p = PLAN_DEFAULTS[tier];
     const annual = yearlyPriceInr(tier);
-    assert.strictEqual(annual, p.monthlyPriceInr * 10);
-    // Savings = 2 months of monthly price
-    const savings = p.monthlyPriceInr * 12 - annual;
-    assert.strictEqual(savings, p.monthlyPriceInr * 2);
+    if (tier === 'SOLO') {
+      assert.strictEqual(annual, 2988);
+      // Savings = 349 * 12 - 2988 = 1200
+      assert.strictEqual(p.monthlyPriceInr * 12 - annual, 1200);
+    } else {
+      assert.strictEqual(annual, p.monthlyPriceInr * 10);
+      const savings = p.monthlyPriceInr * 12 - annual;
+      assert.strictEqual(savings, p.monthlyPriceInr * 2);
+    }
   }
 });
 
