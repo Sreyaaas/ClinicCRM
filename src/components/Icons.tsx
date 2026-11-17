@@ -336,30 +336,33 @@ export const IconPalette = (p: IconProps) => (
     <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.93 0 1.65-.75 1.65-1.69 0-.44-.18-.84-.44-1.13-.29-.29-.44-.65-.44-1.13a1.64 1.64 0 0 1 1.67-1.67h2c3.05 0 5.56-2.5 5.56-5.55C21.97 6.01 17.46 2 12 2z" />
   </Svg>
 );
-export const IconSparkle = (p: IconProps) => (
-  <Svg {...p}>
-    <path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8" />
-  </Svg>
-);
-/** Standard modern AI 4-point star sparkle with round pill container */
-export const IconAiSparkle = ({ className = 'h-4 w-4', strokeWidth = 1.8 }: IconProps) => (
+export const IconSparkle = ({ className = 'h-4 w-4', strokeWidth = 2.4 }: IconProps) => (
   <svg
     aria-hidden="true"
     viewBox="0 0 24 24"
-    fill="currentColor"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
     className={className}
   >
-    <path d="M12 2C12 7.52285 7.52285 12 2 12C7.52285 12 12 16.4772 12 22C12 16.4772 16.4772 12 22 12C16.4772 12 12 7.52285 12 2Z" />
-    <path d="M19 2C19 3.65685 17.6569 5 16 5C17.6569 5 19 6.34315 19 8C19 6.34315 20.3431 5 22 5C20.3431 5 19 3.65685 19 2Z" opacity="0.75" />
+    <path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8" />
   </svg>
 );
-/** Circular rounded AI badge/icon wrapper */
-export const IconAiBadge = ({ className = 'h-5 w-5', iconClassName = 'h-3 w-3' }: { className?: string; iconClassName?: string }) => (
+/** Circular rounded AI badge featuring the 8-spoke orange asterisk logo */
+export const IconAiBadge = ({
+  className = 'h-5 w-5',
+  iconClassName = 'h-3.5 w-3.5',
+}: {
+  className?: string;
+  iconClassName?: string;
+}) => (
   <span
     aria-hidden="true"
-    className={`inline-flex shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-brand to-amber-500 text-white shadow-xs ${className}`}
+    className={`inline-flex shrink-0 items-center justify-center rounded-full bg-brand-softer text-brand ${className}`}
   >
-    <IconAiSparkle className={iconClassName} />
+    <IconSparkle className={iconClassName} strokeWidth={2.4} />
   </span>
 );
 export const IconPlay = (p: IconProps) => (

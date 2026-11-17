@@ -1826,7 +1826,7 @@ function ConsultForm({
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--r-card)] border border-line bg-surface-2/60 p-3.5 sm:px-4">
         <div className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand text-white shadow-xs">
-            <IconCamera className="h-4 w-4" />
+            <IconSparkle className="h-5 w-5" strokeWidth={2.4} />
           </div>
           <div className="min-w-0">
             <span className="block text-[13.5px] font-semibold text-fg">
@@ -1842,7 +1842,9 @@ function ConsultForm({
           onClick={() => setOcrModalOpen(true)}
           className="btn btn-primary btn-sm max-sm:w-full gap-2"
         >
-          <IconAiBadge className="h-4 w-4" iconClassName="h-2.5 w-2.5" />
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-brand shadow-xs">
+            <IconSparkle className="h-3.5 w-3.5" strokeWidth={2.4} />
+          </span>
           Scan prescription
         </button>
       </div>
