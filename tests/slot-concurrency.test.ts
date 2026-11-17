@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert';
-import { getSlotLockKey } from '../src/lib/slot-lock';
+import { getSlotLockKey, getQueueLockKey } from '../src/lib/slot-lock';
 import { getIstHhmm, formatClockTime } from '../src/lib/date';
 
 test('Slot Lock Key: deterministic and integer-safe', () => {
@@ -27,6 +27,26 @@ test('Slot Lock Key: deterministic and integer-safe', () => {
   // Key is a valid signed 32-bit integer for Postgres advisory locks
   assert.ok(Number.isInteger(key1));
   assert.ok(key1 >= -2147483648 && key1 <= 2147483647);
+});
+
+test('Queue Lock Key: deterministic, clinic-scoped, and integer-safe', () => {
+  const clinicId = 'c1111111-2222-3333-4444-555555555555';
+  const docId = 'd1111111-2222-3333-4444-555555555555';
+  const queueDay = '2026-11-20';
+
+  const k1 = getQueueLockKey(clinicId, docId, queueDay);
+  const k2 = getQueueLockKey(clinicId, docId, queueDay);
+  const kDiffDay = getQueueLockKey(clinicId, docId, '2026-11-21');
+  const kDiffDoc = getQueueLockKey(clinicId, 'other-doc', queueDay);
+  const kDiffClinic = getQueueLockKey('other-clinic', docId, queueDay);
+
+  assert.strictEqual(k1, k2);
+  assert.notStrictEqual(k1, kDiffDay);
+  assert.notStrictEqual(k1, kDiffDoc);
+  assert.notStrictEqual(k1, kDiffClinic);
+
+  assert.ok(Number.isInteger(k1));
+  assert.ok(k1 >= -2147483648 && k1 <= 2147483647);
 });
 
 test('Time slot IST formatter: extracts 24h HH:MM reliably', () => {

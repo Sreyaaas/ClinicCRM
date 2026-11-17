@@ -7,6 +7,7 @@ import { getIstDayBounds, getIstDayString } from '@/lib/date';
 import { generateNextInvoiceNumber } from '@/lib/invoice-number';
 import { isDoctorRole } from '@/lib/plans';
 import { prisma } from '@/lib/prisma';
+import { getQueueLockKey } from '@/lib/slot-lock';
 
 const createQueueSchema = z.object({
   patientId: z.string().uuid(),
@@ -148,6 +149,10 @@ export async function POST(request: Request) {
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
         created = await prisma.$transaction(async (tx) => {
+          // Atomic lock for this doctor on this queue day to prevent duplicate tokens under concurrency
+          const queueLockKey = getQueueLockKey(user.clinicId, doctor.id, queueDay);
+          await tx.$executeRaw`SELECT pg_advisory_xact_lock(${queueLockKey}::bigint);`;
+
           const lastEntry = await tx.queueEntry.findFirst({
             where: {
               clinicId: user.clinicId,

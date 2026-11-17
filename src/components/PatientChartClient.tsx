@@ -1611,6 +1611,84 @@ function ConsultForm({
   const [error, setError] = useState<string | null>(null);
   const [appliedTpl, setAppliedTpl] = useState<string | null>(null);
 
+  // WiFi drop & offline resilience: auto-drafting
+  const draftKey = `nadi_rx_draft_${patient.id}`;
+  const [restoredDraft, setRestoredDraft] = useState(false);
+
+  useEffect(() => {
+    if (initialOcrData || (seedRows && seedRows.length > 0)) return;
+    try {
+      const raw = localStorage.getItem(draftKey);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (data && typeof data === 'object') {
+        if (typeof data.complaint === 'string' && data.complaint) setComplaint(data.complaint);
+        if (typeof data.diagnosis === 'string' && data.diagnosis) setDiagnosis(data.diagnosis);
+        if (typeof data.notes === 'string' && data.notes) setNotes(data.notes);
+        if (data.vitals && typeof data.vitals === 'object') {
+          setVitals(data.vitals);
+          if (Object.values(data.vitals).some(Boolean)) setVitalsOpen(true);
+        }
+        if (typeof data.followUpDate === 'string' && data.followUpDate) setFollowUpDate(data.followUpDate);
+        if (typeof data.followUpReason === 'string' && data.followUpReason) setFollowUpReason(data.followUpReason);
+        if (Array.isArray(data.rows) && data.rows.length > 0) {
+          setRows(data.rows);
+        }
+        setRestoredDraft(true);
+      }
+    } catch {
+      // ignore draft parse error
+    }
+  }, [draftKey, initialOcrData, seedRows]);
+
+  useEffect(() => {
+    const hasContent =
+      complaint.trim().length > 0 ||
+      diagnosis.trim().length > 0 ||
+      notes.trim().length > 0 ||
+      Object.values(vitals).some((v) => v.trim().length > 0) ||
+      followUpDate.trim().length > 0 ||
+      rows.some((r) => r.medicineName.trim().length > 0);
+
+    const timer = setTimeout(() => {
+      try {
+        if (hasContent) {
+          localStorage.setItem(
+            draftKey,
+            JSON.stringify({
+              complaint,
+              diagnosis,
+              notes,
+              vitals,
+              followUpDate,
+              followUpReason,
+              rows,
+              updatedAt: Date.now(),
+            })
+          );
+        }
+      } catch {
+        // quota exceeded or private window
+      }
+    }, 1200);
+
+    return () => clearTimeout(timer);
+  }, [draftKey, complaint, diagnosis, notes, vitals, followUpDate, followUpReason, rows]);
+
+  function discardDraft() {
+    try {
+      localStorage.removeItem(draftKey);
+    } catch {}
+    setComplaint('');
+    setDiagnosis('');
+    setNotes('');
+    setVitals({ bp: '', temp: '', pulse: '', weight: '', spo2: '' });
+    setFollowUpDate('');
+    setFollowUpReason('');
+    setRows([]);
+    setRestoredDraft(false);
+  }
+
   const alerts = safetyOn
     ? checkPrescriptionSafety({
         allergies: patient.allergies,
@@ -1758,6 +1836,10 @@ function ConsultForm({
         return;
       }
 
+      try {
+        localStorage.removeItem(draftKey);
+      } catch {}
+
       if (slip) {
         await uploadPatientDocument({
           file: slip,
@@ -1806,6 +1888,22 @@ function ConsultForm({
 
   return (
     <form id="consult-form" onSubmit={submit} className="flex flex-col gap-5">
+      {restoredDraft && (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-[12.5px] text-amber-900 dark:text-amber-200">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+            <span>Restored unsaved consultation notes auto-saved during your previous session.</span>
+          </div>
+          <button
+            type="button"
+            onClick={discardDraft}
+            className="text-[11.5px] font-semibold text-amber-900 dark:text-amber-200 underline hover:opacity-75 shrink-0"
+          >
+            Discard draft
+          </button>
+        </div>
+      )}
+
       {error && (
         <div role="alert" className="alert alert-danger">
           <IconAlert />
