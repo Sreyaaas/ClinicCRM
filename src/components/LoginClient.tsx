@@ -92,8 +92,13 @@ export function LoginClient({ demos }: { demos: DemoAccount[] }) {
               />
             </div>
             <div className="field">
-              <label htmlFor="login-password" className="label">Password</label>
-              <div className="relative">
+              <div className="flex items-center justify-between">
+                <label htmlFor="login-password" className="label mb-0">Password</label>
+                <Link href="/forgot-password" className="text-[12.5px] font-medium text-brand hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
+              <div className="relative mt-1">
                 <input
                   id="login-password"
                   type={show ? 'text' : 'password'}
