@@ -67,21 +67,14 @@ export function PrescriptionOcrModal({
     setPreviewUrl(objectUrl);
 
     try {
-      // Step 1: Optimize client-side to save tokens & upload bandwidth
       setStatus('optimizing');
-      setStatusText('Optimizing image & tokens (resizing to 1600px max)...');
+      setStatusText('Analysing…');
 
       const opt = await optimizePrescriptionImage(selectedFile, 1600, 0.85);
       setOptimizedFile(opt.file);
 
-      const savedPercent = Math.round((1 - opt.optimizedSizeBytes / opt.originalSizeBytes) * 100);
-      if (savedPercent > 0) {
-        setTokenSavings(`Saved ${savedPercent}% tokens (${Math.round(opt.originalSizeBytes / 1024)}KB → ${Math.round(opt.optimizedSizeBytes / 1024)}KB)`);
-      }
-
-      // Step 2: Gemini Multimodal Interaction
       setStatus('reading');
-      setStatusText('Gemini 3.8 Flash reading prescription handwriting & extracting medicines...');
+      setStatusText('Analysing…');
 
       const res = await fetch('/api/ocr/prescription', {
         method: 'POST',
@@ -99,15 +92,15 @@ export function PrescriptionOcrModal({
       if (!res.ok) {
         if (json.code === 'GEMINI_KEY_MISSING') {
           setKeyMissing(true);
-          throw new Error('Gemini API key is not configured. Add GEMINI_API_KEY to your .env file or enter a key below.');
+          throw new Error('API key is not configured. Please contact support or enter a key below.');
         }
-        throw new Error(json.error || 'Failed to extract prescription details');
+        throw new Error(json.error || 'Failed to read prescription');
       }
 
       setStatus('success');
-      setStatusText('Prescription extracted successfully!');
+      setStatusText('Prescription analysed');
       setExtractedData(json.data);
-      toast('Prescription details extracted by Gemini OCR!');
+      toast('Prescription details imported');
     } catch (err) {
       setStatus('error');
       setErrorMsg(err instanceof Error ? err.message : 'Error extracting prescription');
@@ -181,8 +174,7 @@ export function PrescriptionOcrModal({
     };
 
     setStatus('success');
-    setStatusText('Loaded sample clinical prescription for demonstration!');
-    setTokenSavings('Token optimization active (1600px JPEG format)');
+    setStatusText('Loaded sample prescription');
     setExtractedData(demoData);
   }
 
@@ -190,14 +182,8 @@ export function PrescriptionOcrModal({
     <Modal
       open={open}
       onClose={handleClose}
-      title={
-        <span className="flex items-center gap-2">
-          <span>Scan Prescription Slip (AI)</span>
-          <span className="badge badge-warning text-[10.5px] px-1.5 py-0.5 font-medium">Beta</span>
-          <span className="badge badge-brand text-[10.5px] px-1.5 py-0.5 font-medium">USP</span>
-        </span>
-      }
-      description="Our signature AI feature (Beta): Snap a photo of any handwritten prescription or OPD slip. Gemini AI reads doctor handwriting, diagnosis, and medicines to auto-fill the chart in seconds. Always review extracted details before printing."
+      title="Scan prescription"
+      description="Upload or take a photo of a prescription slip to fill this visit automatically."
       size="lg"
       closedby="closerequest"
       footer={
@@ -222,14 +208,6 @@ export function PrescriptionOcrModal({
       }
     >
       <div className="flex flex-col gap-4">
-        {/* USP / Beta banner */}
-        <div className="flex items-center justify-between rounded-[var(--r-control)] bg-brand-softer px-3.5 py-2 text-[12px] text-brand-dark">
-          <div className="flex items-center gap-2">
-            <IconSparkle className="h-4 w-4 shrink-0 text-brand" />
-            <span><strong>Nadi USP:</strong> Instant handwriting &amp; slip digitizer. Currently in public beta for all doctors.</span>
-          </div>
-          <span className="badge badge-warning text-[10px] uppercase font-semibold">Beta</span>
-        </div>
 
         {/* API Key Missing Alert with Inline Configuration */}
         {keyMissing && (
@@ -314,21 +292,9 @@ export function PrescriptionOcrModal({
             />
 
             {status === 'optimizing' || status === 'reading' ? (
-              <div className="flex flex-col items-center gap-3 py-4">
-                <div className="relative">
-                  <IconSparkle className="h-8 w-8 text-brand animate-spin" />
-                </div>
-                <div className="flex flex-col items-center gap-1">
-                  <span className="text-[14px] font-semibold text-brand-ink">{statusText}</span>
-                  {tokenSavings && (
-                    <span className="text-[12px] font-medium text-success-ink">
-                      ⚡ {tokenSavings}
-                    </span>
-                  )}
-                </div>
-                <p className="max-w-md text-[12px] text-muted">
-                  Extracting patient details, vitals, diagnosis, and prescriptions via Gemini multimodal vision...
-                </p>
+              <div className="flex flex-col items-center gap-3 py-6">
+                <IconSparkle className="h-7 w-7 text-brand animate-spin" />
+                <span className="text-[14px] font-medium text-fg">Analysing…</span>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-3">
@@ -385,16 +351,9 @@ export function PrescriptionOcrModal({
         {extractedData && (
           <div className="flex flex-col gap-4">
             {/* Header pill with token savings */}
-            <div className="flex flex-wrap items-center justify-between gap-2 rounded-[var(--r-control)] bg-success-light px-3.5 py-2 text-[12.5px] text-success-ink">
-              <span className="flex items-center gap-2 font-medium">
-                <IconCheck className="h-4 w-4 text-success" />
-                Prescription parsed with {Math.round(extractedData.confidenceScore * 100)}% confidence
-              </span>
-              {tokenSavings && (
-                <span className="rounded bg-surface/70 px-2 py-0.5 font-mono text-[11px] text-muted">
-                  {tokenSavings}
-                </span>
-              )}
+            <div className="flex items-center gap-2 rounded-[var(--r-control)] bg-success-light px-3.5 py-2 text-[12.5px] text-success-ink font-medium">
+              <IconCheck className="h-4 w-4 text-success" />
+              <span>Details ready to apply</span>
             </div>
 
             {/* Grid of parsed details */}

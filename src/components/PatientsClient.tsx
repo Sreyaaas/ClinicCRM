@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { formatIstDate } from '@/lib/date';
 import type { PrescriptionOcrData } from '@/lib/gemini-ocr';
 import { openNewPatient } from './AppShell';
-import { IconAlert, IconChevronRight, IconEdit, IconPatients, IconSearch, IconSparkle, IconTrash, IconUserPlus } from './Icons';
+import { IconAlert, IconCamera, IconChevronRight, IconEdit, IconPatients, IconSearch, IconSparkle, IconTrash, IconUserPlus } from './Icons';
 import { hasAllergy, patientMeta, usePatientSearch, type PatientListItem } from './patients';
 import { PrescriptionOcrModal } from './PrescriptionOcrModal';
 import { apiJson, Avatar, EmptyState, Modal, PageHeader, Spinner, toast } from './ui';
@@ -128,12 +128,11 @@ export function PatientsClient({
             <button
               type="button"
               onClick={() => setOcrModalOpen(true)}
-              className="btn btn-secondary text-brand-ink gap-1.5"
-              title="Scan paper prescription with AI (Beta USP)"
+              className="btn btn-secondary gap-1.5"
+              title="Scan a paper prescription"
             >
-              <IconSparkle className="text-brand" />
-              <span>Scan Rx (AI)</span>
-              <span className="badge badge-warning text-[10px] px-1 py-0 font-medium">Beta</span>
+              <IconCamera />
+              <span>Scan prescription</span>
             </button>
             <button type="button" onClick={openNewPatient} className="btn btn-primary">
               <IconUserPlus />

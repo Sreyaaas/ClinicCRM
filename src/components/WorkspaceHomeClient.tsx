@@ -10,6 +10,7 @@ import { openNewPatient } from './AppShell';
 import {
   IconAlert,
   IconCalendar,
+  IconCamera,
   IconCheck,
   IconChevronLeft,
   IconChevronRight,
@@ -613,13 +614,12 @@ export function WorkspaceHomeClient({
             )}
             <button
               type="button"
-              className="btn btn-secondary max-sm:flex-1 text-brand-ink gap-1.5"
+              className="btn btn-secondary max-sm:flex-1 gap-1.5"
               onClick={() => setOcrModalOpen(true)}
-              title="Scan paper prescription with AI (Beta USP)"
+              title="Scan a paper prescription"
             >
-              <IconSparkle className="text-brand" />
-              <span>Scan Rx (AI)</span>
-              <span className="badge badge-warning text-[10px] px-1 py-0 font-medium">Beta</span>
+              <IconCamera />
+              <span>Scan prescription</span>
             </button>
             {showQueue ? (
               <button type="button" className="btn btn-primary max-sm:flex-1" onClick={() => setAction('checkin')}>

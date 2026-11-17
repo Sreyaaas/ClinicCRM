@@ -402,12 +402,11 @@ export function PatientChartClient({
                 <button
                   type="button"
                   onClick={() => setOcrOpen(true)}
-                  className="btn btn-secondary max-sm:flex-1 text-brand-ink border-brand/40 hover:bg-brand-light/50 gap-1.5"
-                  title="Snap prescription photo to auto-populate consultation details with Gemini AI (Beta USP)"
+                  className="btn btn-secondary max-sm:flex-1 gap-1.5"
+                  title="Scan a paper prescription"
                 >
-                  <IconSparkle className="text-brand" />
-                  <span>Scan Rx (AI)</span>
-                  <span className="badge badge-warning text-[10px] px-1 py-0 font-medium">Beta</span>
+                  <IconCamera />
+                  <span>Scan prescription</span>
                 </button>
                 <button
                   type="button"
@@ -1709,7 +1708,7 @@ function ConsultForm({
     if (data.prescriptions.length > 0) parts.push(`${data.prescriptions.length} medications`);
     if (data.visit.vitals?.bp) parts.push(`BP ${data.visit.vitals.bp}`);
     setOcrSummary(parts.join(' · ') || 'Details extracted');
-    toast('Prescription details auto-populated by Gemini OCR!');
+    toast('Prescription details auto-filled');
   }
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
@@ -1822,18 +1821,18 @@ function ConsultForm({
         </div>
       )}
 
-      {/* AI Prescription OCR Banner */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--r-card)] border border-brand/40 bg-brand-light/35 p-3.5 sm:px-4">
+      {/* Prescription Scan Banner */}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--r-card)] border border-line bg-surface-2/60 p-3.5 sm:px-4">
         <div className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand text-white shadow-xs">
-            <IconSparkle className="h-4 w-4" />
+            <IconCamera className="h-4 w-4" />
           </div>
           <div className="min-w-0">
-            <span className="block text-[13.5px] font-semibold text-brand-ink">
-              AI Prescription Auto-Fill (Gemini OCR)
+            <span className="block text-[13.5px] font-semibold text-fg">
+              Auto-fill from photo
             </span>
             <span className="block text-[12px] text-muted">
-              Upload prescription photo — Gemini reads medicines, vitals & diagnosis instantly
+              Upload a prescription photo to fill medicines, vitals and diagnosis
             </span>
           </div>
         </div>
@@ -1843,17 +1842,17 @@ function ConsultForm({
           className="btn btn-primary btn-sm max-sm:w-full"
         >
           <IconCamera />
-          Scan Prescription Photo
+          Scan prescription
         </button>
       </div>
 
-      {/* OCR Success banner if applied */}
+      {/* Success banner if applied */}
       {ocrSummary && (
         <div className="flex items-center justify-between gap-3 rounded-[var(--r-control)] bg-success-light px-3.5 py-2 text-[12.5px] text-success-ink">
           <span className="flex items-center gap-2">
             <IconCheck className="h-4 w-4 text-success shrink-0" />
             <span>
-              <strong>AI Auto-Populated:</strong> {ocrSummary}. Review or tweak any field below.
+              <strong>Filled from photo:</strong> {ocrSummary}. Review or tweak any field below.
             </span>
           </span>
           <button

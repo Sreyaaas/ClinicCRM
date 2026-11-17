@@ -46,11 +46,11 @@ const FAQ = [
   ['Do I need new hardware?', 'No. Nadi runs in the browser on any phone, tablet or computer. Any TV with a browser works as the waiting-room display.'],
   [
     'Can I keep writing prescriptions by hand?',
-    'Yes! That’s our signature feature: Snap a photo of your paper slip with "Scan Rx (AI Beta)", and Gemini AI instantly extracts diagnosis, medicines, and dosage straight into the chart without manual typing. Or just keep the photo on file.',
+    'Yes! Snap a photo of your paper slip with "Scan prescription", and diagnosis, medicines and dosage are filled straight into the chart without manual typing. Or just keep the photo on file.',
   ],
   [
-    'What is "Scan Rx (AI)" and is it free?',
-    'Scan Rx is our unique signature AI digitizer (currently in free Beta for all plans). It reads doctor handwriting from prescription slips or hospital discharge summaries and populates medicines, timing, and dosages in seconds. Doctors review and print in one click.',
+    'Can I scan paper prescriptions?',
+    'Yes. Take a photo of prescription slips or hospital discharge summaries, and Nadi automatically reads the medicines, timing, and dosages so you can review and save in seconds.',
   ],
   ['Who owns the patient data?', 'You do. Download a complete backup of your clinic from Settings at any time — no request, no fee.'],
   ['How long is the free trial?', 'Every plan comes with 14 days free — all features of that plan, no card needed to start.'],
