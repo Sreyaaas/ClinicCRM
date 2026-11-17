@@ -432,6 +432,7 @@ export default function HomePage() {
             <a href="#day" className="hover:text-fg">Product</a>
             <a href="#pricing" className="hover:text-fg">Pricing</a>
             <a href="#faq" className="hover:text-fg">FAQ</a>
+            <Link href="/privacy-policy" className="hover:text-fg">Privacy Policy</Link>
             <Link href="/login" className="hover:text-fg">Sign in</Link>
             <Link href="/register" className="hover:text-fg">Create account</Link>
           </nav>

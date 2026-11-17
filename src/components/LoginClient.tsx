@@ -131,6 +131,12 @@ export function LoginClient({ demos }: { demos: DemoAccount[] }) {
               Start your 14-day free trial
             </Link>
           </p>
+
+          <p className="mt-6 text-[12px] text-muted">
+            <Link href="/privacy-policy" className="hover:text-fg underline underline-offset-2">
+              Privacy Policy
+            </Link>
+          </p>
         </div>
       </main>
 

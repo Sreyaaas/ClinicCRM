@@ -371,6 +371,13 @@ export function RegisterClient({ initialTier }: { initialTier: PlanTier }) {
             <p className="text-center text-[11.5px] text-muted">
               No card required · Instant access · Cancel anytime
             </p>
+            <p className="text-center text-[11px] text-muted">
+              By signing up, you agree to our{' '}
+              <Link href="/privacy-policy" target="_blank" className="underline hover:text-fg">
+                Privacy Policy
+              </Link>
+              .
+            </p>
           </aside>
         </form>
       </main>

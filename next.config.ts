@@ -9,6 +9,15 @@ const nextConfig: NextConfig = {
       validationLevel: 'manual-warning',
     },
   },
+  async redirects() {
+    return [
+      {
+        source: '/privacy',
+        destination: '/privacy-policy',
+        permanent: true,
+      },
+    ];
+  },
   turbopack: {
     rules: {
       '*.css': {
