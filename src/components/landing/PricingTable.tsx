@@ -69,6 +69,9 @@ function price(t: PlanTier, yearly: boolean) {
   if (t === 'ENTERPRISE') {
     return { main: 'Custom', sub: 'Talk to sales' };
   }
+  if (t === 'CLINIC' || t === 'GROWTH') {
+    return { main: 'Price to be disclosed', sub: '14-day trial included' };
+  }
   const m = PLAN_DEFAULTS[t].monthlyPriceInr;
   if (m === 0) return { main: '₹0', sub: 'Free forever' };
   if (yearly) {
@@ -159,6 +162,23 @@ export function PricingTable() {
                           Talk to sales
                         </a>
                       </>
+                    ) : t === 'CLINIC' || t === 'GROWTH' ? (
+                      <>
+                        <p className="mt-5 flex items-baseline gap-1">
+                          <span className="text-[18px] font-bold leading-tight tracking-[-0.02em]">
+                            Price to be disclosed
+                          </span>
+                        </p>
+                        <p className={`mt-1.5 h-4 text-[12px] ${p.recommended ? 'opacity-65' : 'text-muted'}`}>
+                          14-day free trial included
+                        </p>
+                        <Link
+                          href={`/register?tier=${t}`}
+                          className={`btn mt-5 h-10 w-full text-[13.5px] font-semibold ${p.recommended ? 'btn-primary' : 'btn-secondary'}`}
+                        >
+                          Start free trial
+                        </Link>
+                      </>
                     ) : (
                       <>
                         <p className="mt-5 flex items-baseline gap-1">
@@ -244,11 +264,11 @@ export function PricingTable() {
               <div className="p-5">
                 <p className="text-[15px] font-semibold">{p.label}</p>
                 <p className="mt-1 text-[13.5px] text-muted">{p.tagline}</p>
-                <p className="mt-4 text-[32px] font-semibold tracking-[-0.03em] tnum">
+                <p className="mt-4 text-[24px] sm:text-[32px] font-semibold tracking-[-0.03em] tnum">
                   {pr.main}
-                  {t !== 'ENTERPRISE' && p.monthlyPriceInr > 0 && <span className="text-[14px] font-normal text-muted"> /month</span>}
+                  {t === 'SOLO' && p.monthlyPriceInr > 0 && <span className="text-[14px] font-normal text-muted"> /month</span>}
                 </p>
-                <p className="text-[12.5px] text-muted">{t === 'ENTERPRISE' ? 'Talk to sales for hospital chains' : yearly && p.monthlyPriceInr > 0 ? pr.sub : p.monthlyPriceInr === 0 ? pr.sub : 'billed monthly'}</p>
+                <p className="text-[12.5px] text-muted">{t === 'ENTERPRISE' ? 'Talk to sales for hospital chains' : t === 'CLINIC' || t === 'GROWTH' ? '14-day free trial included' : yearly && p.monthlyPriceInr > 0 ? pr.sub : p.monthlyPriceInr === 0 ? pr.sub : 'billed monthly'}</p>
                 {t === 'ENTERPRISE' ? (
                   <a
                     href={buildWhatsAppLink(

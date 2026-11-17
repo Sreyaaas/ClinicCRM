@@ -336,7 +336,7 @@ export const IconPalette = (p: IconProps) => (
     <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.93 0 1.65-.75 1.65-1.69 0-.44-.18-.84-.44-1.13-.29-.29-.44-.65-.44-1.13a1.64 1.64 0 0 1 1.67-1.67h2c3.05 0 5.56-2.5 5.56-5.55C21.97 6.01 17.46 2 12 2z" />
   </Svg>
 );
-export const IconSparkle = ({ className = 'h-4 w-4', strokeWidth = 2.4 }: IconProps) => (
+export const IconSparkle = ({ className = 'h-4 w-4', strokeWidth = 2.6 }: IconProps) => (
   <svg
     aria-hidden="true"
     viewBox="0 0 24 24"
@@ -347,7 +347,7 @@ export const IconSparkle = ({ className = 'h-4 w-4', strokeWidth = 2.4 }: IconPr
     strokeLinejoin="round"
     className={className}
   >
-    <path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8" />
+    <path d="M12 3.2v4.8M12 16v4.8M3.2 12h4.8M16 12h4.8M5.78 5.78l3.39 3.39M14.83 14.83l3.39 3.39M5.78 18.22l3.39-3.39M14.83 9.17l3.39-3.39" />
   </svg>
 );
 /** Circular rounded AI badge featuring the 8-spoke orange asterisk logo */
@@ -362,7 +362,7 @@ export const IconAiBadge = ({
     aria-hidden="true"
     className={`inline-flex shrink-0 items-center justify-center rounded-full bg-brand-softer text-brand ${className}`}
   >
-    <IconSparkle className={iconClassName} strokeWidth={2.4} />
+    <IconSparkle className={iconClassName} strokeWidth={2.6} />
   </span>
 );
 export const IconPlay = (p: IconProps) => (

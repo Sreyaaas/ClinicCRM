@@ -1843,7 +1843,7 @@ function ConsultForm({
           className="btn btn-primary btn-sm max-sm:w-full gap-2"
         >
           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-brand shadow-xs">
-            <IconSparkle className="h-3.5 w-3.5" strokeWidth={2.4} />
+            <IconSparkle className="h-3.5 w-3.5" strokeWidth={2.6} />
           </span>
           Scan prescription
         </button>

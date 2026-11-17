@@ -1318,9 +1318,11 @@ function PlanTab({
         description={
           user.clinic.planTier === 'ENTERPRISE'
             ? 'Enterprise Network · Custom deployment'
-            : user.clinic.subscriptionStatus === 'TRIAL' && user.clinic.trialDaysLeft !== null
-              ? `Free trial · ${user.clinic.trialDaysLeft} days left`
-              : `₹${current.monthlyPriceInr.toLocaleString('en-IN')} per month`
+            : user.clinic.planTier === 'CLINIC' || user.clinic.planTier === 'GROWTH'
+              ? `${current.shortName} · Price to be disclosed`
+              : user.clinic.subscriptionStatus === 'TRIAL' && user.clinic.trialDaysLeft !== null
+                ? `Free trial · ${user.clinic.trialDaysLeft} days left`
+                : `₹${current.monthlyPriceInr.toLocaleString('en-IN')} per month`
         }
       >
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -1358,12 +1360,22 @@ function PlanTab({
                 <h3 className="text-[15px] font-semibold">{p.label}</h3>
                 {isCurrent ? <Badge tone="brand">Current</Badge> : p.recommended ? <Badge>Popular</Badge> : null}
               </div>
-              <p className="mt-2 text-[26px] font-semibold tracking-[-0.02em] tnum">
-                {tier === 'ENTERPRISE' ? 'Custom' : p.monthlyPriceInr === 0 ? 'Free' : `₹${p.monthlyPriceInr.toLocaleString('en-IN')}`}
-                {tier !== 'ENTERPRISE' && p.monthlyPriceInr > 0 && <span className="text-[13px] font-normal text-muted"> /month</span>}
+              <p className="mt-2 text-[22px] font-semibold tracking-[-0.02em] tnum">
+                {tier === 'ENTERPRISE'
+                  ? 'Custom'
+                  : tier === 'CLINIC' || tier === 'GROWTH'
+                    ? 'Price to be disclosed'
+                    : p.monthlyPriceInr === 0
+                      ? 'Free'
+                      : `₹${p.monthlyPriceInr.toLocaleString('en-IN')}`}
+                {tier === 'SOLO' && p.monthlyPriceInr > 0 && <span className="text-[13px] font-normal text-muted"> /month</span>}
               </p>
               <p className="mt-1 text-[13px] text-muted">
-                {tier === 'ENTERPRISE' ? 'Talk to sales for custom pricing' : p.tagline}
+                {tier === 'ENTERPRISE'
+                  ? 'Talk to sales for custom pricing'
+                  : tier === 'CLINIC' || tier === 'GROWTH'
+                    ? 'Talk to sales for custom setup'
+                    : p.tagline}
               </p>
               <ul className="mt-4 flex flex-1 flex-col gap-2 text-[13px]">
                 {p.highlights.map((h) => (
@@ -1382,7 +1394,7 @@ function PlanTab({
                 >
                   {isCurrent
                     ? 'Your plan'
-                    : tier === 'ENTERPRISE'
+                    : tier === 'ENTERPRISE' || tier === 'CLINIC' || tier === 'GROWTH'
                       ? 'Talk to sales'
                       : switching === tier
                         ? 'Updating…'
@@ -1423,15 +1435,16 @@ function PlanUpgradeModal({
   const isTrial = user.clinic.subscriptionStatus === 'TRIAL';
 
   const isEnterprise = targetTier === 'ENTERPRISE';
+  const isCustomPricing = targetTier === 'ENTERPRISE' || targetTier === 'CLINIC' || targetTier === 'GROWTH';
   const monthlyPrice = target.monthlyPriceInr;
   const yearlyPrice = yearlyPriceInr(targetTier);
   const monthlySavings = monthlyPrice * 12 - yearlyPrice;
   const effectivePrice = billingCycle === 'yearly' ? yearlyPrice : monthlyPrice;
 
-  const upgradeWaUrl = isEnterprise
+  const upgradeWaUrl = isCustomPricing
     ? buildWhatsAppLink(
         process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP || '919400000000',
-        `Hi Nadi Team,\nI would like to inquire about the Enterprise Network plan for my clinic / hospital group:\n*Clinic:* ${user.clinic.name}\n*Clinic Code:* ${user.clinic.slug}\n*Doctor:* ${user.name}\n*Requirement:* Multi-branch & custom deployment\nPlease connect me with an enterprise specialist.`
+        `Hi Nadi Team,\nI would like to inquire about the ${target.label} plan for my clinic:\n*Clinic:* ${user.clinic.name}\n*Clinic Code:* ${user.clinic.slug}\n*Doctor:* ${user.name}\n*Requirement:* ${target.label} setup & pricing details\nPlease connect me with a specialist.`
       )
     : createPlanUpgradeWhatsAppUrl({
         clinicName: user.clinic.name,
@@ -1447,15 +1460,15 @@ function PlanUpgradeModal({
       open={true}
       onClose={onClose}
       title={
-        isEnterprise
-          ? 'Enterprise Network'
+        isCustomPricing
+          ? `${target.label}`
           : isDowngrade
             ? `Downgrade to ${target.shortName}`
             : `Upgrade to ${target.shortName}`
       }
       description={
-        isEnterprise
-          ? 'Custom deployment for hospital chains, multi-branch groups & branded networks.'
+        isCustomPricing
+          ? `Custom setup for ${target.targetAudience.toLowerCase()}.`
           : target.tagline
       }
       size="md"
@@ -1464,7 +1477,7 @@ function PlanUpgradeModal({
           <button type="button" onClick={onClose} disabled={switching} className="btn btn-secondary">
             Cancel
           </button>
-          {isTrial && !isEnterprise && (
+          {isTrial && (
             <button
               type="button"
               disabled={switching}
@@ -1482,7 +1495,7 @@ function PlanUpgradeModal({
           >
             <IconMessage className="h-4 w-4" />
             <span>
-              {isEnterprise
+              {isCustomPricing
                 ? 'Talk to sales on WhatsApp'
                 : isTrial
                   ? 'Activate Paid Plan'

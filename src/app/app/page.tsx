@@ -21,7 +21,7 @@ export const instant = false;
 async function WorkspaceHomeLoader({ searchParams }: { searchParams: Promise<{ action?: string }> }) {
   const user = await requireSessionUser();
   const sp = await searchParams;
-  const initialAction = sp.action === 'checkin' || sp.action === 'book' ? sp.action : null;
+  const initialAction = sp.action === 'checkin' || sp.action === 'book' || sp.action === 'ocr' ? sp.action : null;
   const features = getPlanFeatures(user.clinic.planTier);
   const queueDay = getIstDayString();
   const { start, end } = getIstDayBounds(queueDay);

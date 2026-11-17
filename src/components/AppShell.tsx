@@ -31,6 +31,7 @@ import {
   IconReceiptMinus,
   IconSearch,
   IconSettings,
+  IconSparkle,
   IconSun,
   IconUser,
   IconUserPlus,
@@ -147,6 +148,12 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
       hint: 'Register and open their chart',
       icon: IconUserPlus,
       run: () => setNewPatientOpen(true),
+    },
+    {
+      label: 'Scan prescription',
+      hint: 'AI handwriting & medicine reader',
+      icon: (p: { className?: string }) => <IconSparkle {...p} strokeWidth={2.6} />,
+      run: () => router.push('/app?action=ocr'),
     },
     ...(features.queueWorkflow
       ? [

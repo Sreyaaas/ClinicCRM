@@ -91,9 +91,11 @@ export function RegisterClient({ initialTier }: { initialTier: PlanTier }) {
             <span className="rounded-md bg-brand-softer px-2 py-0.5 text-[11px] font-medium text-brand">
               {planTier === 'ENTERPRISE'
                 ? 'Custom'
-                : plan.monthlyPriceInr === 0
-                  ? 'Free'
-                  : `₹${plan.monthlyPriceInr}/mo`}
+                : planTier === 'CLINIC' || planTier === 'GROWTH'
+                  ? 'Price to be disclosed'
+                  : plan.monthlyPriceInr === 0
+                    ? 'Free'
+                    : `₹${plan.monthlyPriceInr}/mo`}
             </span>
           </div>
           <a
@@ -312,14 +314,16 @@ export function RegisterClient({ initialTier }: { initialTier: PlanTier }) {
                           <span className="block truncate text-[12px] text-muted">{p.tagline}</span>
                         </div>
                         <div className="text-right shrink-0">
-                          <span className="text-[13px] font-semibold tnum text-fg">
+                          <span className="text-[12.5px] font-semibold text-fg">
                             {tier === 'ENTERPRISE'
                               ? 'Custom'
-                              : p.monthlyPriceInr === 0
-                                ? 'Free'
-                                : `₹${p.monthlyPriceInr.toLocaleString('en-IN')}`}
+                              : tier === 'CLINIC' || tier === 'GROWTH'
+                                ? 'Price to be disclosed'
+                                : p.monthlyPriceInr === 0
+                                  ? 'Free'
+                                  : `₹${p.monthlyPriceInr.toLocaleString('en-IN')}`}
                           </span>
-                          {tier !== 'ENTERPRISE' && (
+                          {tier === 'SOLO' && (
                             <span className="block text-[10.5px] text-muted">/month</span>
                           )}
                         </div>

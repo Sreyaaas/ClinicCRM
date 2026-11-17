@@ -105,7 +105,7 @@ export interface AppointmentListItem {
   };
 }
 
-type QuickAction = 'checkin' | 'book' | null;
+type QuickAction = 'checkin' | 'book' | 'ocr' | null;
 
 function formatSlotTime(iso: string): string {
   return formatIstTime(iso);
@@ -175,7 +175,7 @@ export function WorkspaceHomeClient({
   const [action, setAction] = useState<QuickAction>(initialAction);
   const [picked, setPicked] = useState<PatientListItem | null>(null);
   const [newFromPicker, setNewFromPicker] = useState<string | null>(null);
-  const [ocrModalOpen, setOcrModalOpen] = useState(false);
+  const [ocrModalOpen, setOcrModalOpen] = useState(initialAction === 'ocr');
 
   async function handleOcrFromHome(data: PrescriptionOcrData) {
     setOcrModalOpen(false);
