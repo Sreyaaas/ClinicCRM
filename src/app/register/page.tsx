@@ -20,7 +20,7 @@ export const metadata: Metadata = { title: 'Create account' };
 
 export default function RegisterPage({ searchParams }: PageProps<'/register'>) {
   return (
-    <div data-landing style={DEFAULT_PALETTE.vars as React.CSSProperties} className="theme-light min-h-dvh">
+    <div data-landing style={DEFAULT_PALETTE.vars as React.CSSProperties} className="theme-light min-h-dvh w-full overflow-x-hidden">
       <Suspense fallback={<PageSkeleton />}>
         <RegisterLoader searchParams={searchParams} />
       </Suspense>

@@ -62,8 +62,8 @@ export function RegisterClient({ initialTier }: { initialTier: PlanTier }) {
   }
 
   return (
-    <div className="brand-scope min-h-dvh overflow-x-hidden">
-      <header className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
+    <div className="brand-scope min-h-dvh w-full overflow-x-hidden text-left">
+      <header className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-4 sm:px-6">
         <BrandLogo />
         <p className="text-[13px] text-muted sm:text-[13.5px]">
           Have an account?{' '}
@@ -73,16 +73,18 @@ export function RegisterClient({ initialTier }: { initialTier: PlanTier }) {
         </p>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 pb-16 pt-4 sm:px-6 sm:pt-6">
-        <div className="max-w-xl">
-          <h1 className="text-[25px] font-semibold tracking-[-0.025em] sm:text-[30px]">Set up your clinic</h1>
-          <p className="mt-1 text-[14px] text-muted sm:text-[15px]">
+      <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-4 sm:px-6 sm:pt-6">
+        <div className="w-full max-w-xl text-left">
+          <h1 className="text-[24px] font-semibold tracking-[-0.025em] text-fg sm:text-[30px]">
+            Set up your clinic
+          </h1>
+          <p className="mt-1 text-[13.5px] text-muted sm:text-[15px]">
             14 days free on any plan. No card needed. Switch plans anytime.
           </p>
         </div>
 
         {/* Mobile Plan Indicator badge */}
-        <div className="mt-4 flex items-center justify-between rounded-xl border border-line bg-surface-2/80 px-4 py-2.5 text-[13px] lg:hidden">
+        <div className="mt-4 flex w-full items-center justify-between rounded-xl border border-line bg-surface-2/80 px-4 py-2.5 text-[13px] lg:hidden">
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-muted">Selected plan:</span>
             <strong className="font-semibold text-fg truncate">{plan.shortName}</strong>
@@ -102,8 +104,11 @@ export function RegisterClient({ initialTier }: { initialTier: PlanTier }) {
           </a>
         </div>
 
-        <form onSubmit={submit} className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_350px]">
-          <div className="card flex flex-col gap-6 p-4.5 sm:p-7">
+        <form
+          onSubmit={submit}
+          className="mt-6 grid w-full grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_350px]"
+        >
+          <div className="card flex w-full flex-col gap-6 p-4 sm:p-7 shadow-sm text-left">
             {/* Honeypot field for anti-bot protection */}
             <div className="sr-only" aria-hidden="true">
               <label htmlFor="reg-hp-website">Website</label>
@@ -125,10 +130,10 @@ export function RegisterClient({ initialTier }: { initialTier: PlanTier }) {
               </div>
             )}
 
-            <fieldset className="border-0 p-0 m-0 min-w-0">
+            <fieldset className="border-0 p-0 m-0 w-full min-w-0 text-left">
               <legend className="mb-3 text-[14px] font-semibold text-fg">Clinic details</legend>
-              <div className="flex flex-col gap-4">
-                <div className="field">
+              <div className="flex w-full flex-col gap-4">
+                <div className="field w-full">
                   <label htmlFor="reg-clinic" className="label">
                     Clinic name
                   </label>
@@ -136,14 +141,14 @@ export function RegisterClient({ initialTier }: { initialTier: PlanTier }) {
                     id="reg-clinic"
                     required
                     autoComplete="organization"
-                    className="input"
+                    className="input h-11 w-full"
                     value={clinicName}
                     onChange={(e) => setClinicName(e.target.value)}
                     placeholder="e.g. Malabar Care Polyclinic"
                   />
                 </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="field">
+                <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="field w-full">
                     <label htmlFor="reg-doctor" className="label">
                       Your name
                     </label>
@@ -151,25 +156,25 @@ export function RegisterClient({ initialTier }: { initialTier: PlanTier }) {
                       id="reg-doctor"
                       required
                       autoComplete="name"
-                      className="input"
+                      className="input h-11 w-full"
                       value={doctorName}
                       onChange={(e) => setDoctorName(e.target.value)}
                       placeholder="Dr. Anjali Menon"
                     />
                   </div>
-                  <div className="field">
+                  <div className="field w-full">
                     <label htmlFor="reg-specialty" className="label">
                       Specialty
                     </label>
                     <input
                       id="reg-specialty"
-                      className="input"
+                      className="input h-11 w-full"
                       value={specialty}
                       onChange={(e) => setSpecialty(e.target.value)}
                       placeholder="e.g. General Medicine"
                     />
                   </div>
-                  <div className="field">
+                  <div className="field w-full">
                     <label htmlFor="reg-phone" className="label">
                       Mobile <span className="font-normal text-muted">(optional)</span>
                     </label>
@@ -178,24 +183,24 @@ export function RegisterClient({ initialTier }: { initialTier: PlanTier }) {
                       type="tel"
                       inputMode="tel"
                       autoComplete="tel"
-                      className="input tnum"
+                      className="input h-11 w-full tnum"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="98765 43210"
                     />
                   </div>
-                  <div className="field">
+                  <div className="field w-full">
                     <label htmlFor="reg-fee" className="label">
                       Consultation fee
                     </label>
-                    <div className="relative">
+                    <div className="relative w-full">
                       <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted font-medium select-none">
                         ₹
                       </span>
                       <input
                         id="reg-fee"
                         inputMode="numeric"
-                        className="input pl-8 tnum"
+                        className="input h-11 w-full pl-8 tnum"
                         value={fee}
                         onChange={(e) => setFee(e.target.value.replace(/\D/g, ''))}
                         placeholder="250"
@@ -208,10 +213,10 @@ export function RegisterClient({ initialTier }: { initialTier: PlanTier }) {
 
             <div className="divider" />
 
-            <fieldset className="border-0 p-0 m-0 min-w-0">
+            <fieldset className="border-0 p-0 m-0 w-full min-w-0 text-left">
               <legend className="mb-3 text-[14px] font-semibold text-fg">Sign-in credentials</legend>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="field">
+              <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="field w-full">
                   <label htmlFor="reg-email" className="label">
                     Email
                   </label>
@@ -222,24 +227,24 @@ export function RegisterClient({ initialTier }: { initialTier: PlanTier }) {
                     autoCapitalize="none"
                     spellCheck={false}
                     required
-                    className="input"
+                    className="input h-11 w-full"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="doctor@clinic.in"
                   />
                 </div>
-                <div className="field">
+                <div className="field w-full">
                   <label htmlFor="reg-password" className="label">
                     Password
                   </label>
-                  <div className="relative">
+                  <div className="relative w-full">
                     <input
                       id="reg-password"
                       type={showPassword ? 'text' : 'password'}
                       autoComplete="new-password"
                       minLength={6}
                       required
-                      className="input pr-10"
+                      className="input h-11 w-full pr-11"
                       placeholder="At least 6 characters"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -260,23 +265,23 @@ export function RegisterClient({ initialTier }: { initialTier: PlanTier }) {
             </fieldset>
           </div>
 
-          <aside className="flex flex-col gap-4 lg:sticky lg:top-6">
-            <fieldset id="plan-selection" className="card overflow-hidden border border-line bg-surface">
+          <aside className="flex w-full flex-col gap-4 lg:sticky lg:top-6 text-left">
+            <fieldset id="plan-selection" className="card w-full overflow-hidden border border-line bg-surface text-left">
               <legend className="sr-only">Choose a plan</legend>
               <div className="border-b border-line bg-surface-2/60 px-4 py-3 sm:px-5 sm:py-3.5 flex items-center justify-between">
-                <span className="text-[13.5px] sm:text-[14px] font-semibold">Choose your plan</span>
+                <span className="text-[13.5px] sm:text-[14px] font-semibold text-fg">Choose your plan</span>
                 <span className="text-[11px] font-semibold text-brand uppercase tracking-wider">
                   14-day trial
                 </span>
               </div>
-              <ul className="list">
+              <ul className="list w-full">
                 {PLAN_ORDER.map((tier) => {
                   const p = PLAN_DEFAULTS[tier];
                   const selected = planTier === tier;
                   return (
-                    <li key={tier}>
+                    <li key={tier} className="w-full">
                       <label
-                        className={`flex cursor-pointer items-center gap-3 px-4 py-3 sm:px-5 transition-colors ${
+                        className={`flex w-full cursor-pointer items-center gap-3 px-4 py-3 sm:px-5 transition-colors ${
                           selected ? 'bg-brand-softer' : 'hover:bg-surface-2'
                         }`}
                       >
@@ -295,7 +300,7 @@ export function RegisterClient({ initialTier }: { initialTier: PlanTier }) {
                         >
                           {selected && <IconCheck className="h-3 w-3" strokeWidth={3} />}
                         </span>
-                        <div className="min-w-0 flex-1">
+                        <div className="min-w-0 flex-1 text-left">
                           <div className="flex items-center gap-2">
                             <span className="text-[13.5px] font-medium text-fg">{p.shortName}</span>
                             {p.badge && (
@@ -341,7 +346,7 @@ export function RegisterClient({ initialTier }: { initialTier: PlanTier }) {
             <button
               type="submit"
               disabled={submitting}
-              className="btn btn-primary btn-lg w-full text-[15px] font-semibold shadow-sm"
+              className="btn btn-primary btn-lg h-12 w-full text-[15px] font-semibold shadow-sm"
             >
               {submitting ? 'Creating your workspace…' : 'Start 14-day free trial'}
             </button>
