@@ -25,11 +25,18 @@ export const metadata: Metadata = {
     apple: [{ url: '/apple-icon.png', sizes: '180x180', type: 'image/png' }],
   },
   manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Nadi',
+  },
 };
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: 'cover',
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#f6f6f4' },
@@ -42,7 +49,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${appSans.variable} h-full antialiased`}
+      className={`${appSans.variable} h-full antialiased overflow-x-hidden`}
     >
       <body className="min-h-dvh w-full overflow-x-hidden">
         <Script id="theme-boot" strategy="beforeInteractive">

@@ -1282,8 +1282,8 @@ dialog.modal::backdrop {
   }
   dialog.modal {
     margin: auto 0 0;
-    width: 100vw;
-    max-width: 100vw;
+    width: 100%;
+    max-width: 100%;
     max-height: 94dvh;
     border-radius: 20px 20px 0 0;
     border-bottom: 0;
@@ -1426,4 +1426,59 @@ dialog.modal::backdrop {
     font-size: 11px !important;
   }
 }
+
+/* ──────────────────────────────────────────────────────────────
+   iOS Standalone PWA & WebKit Mobile Fixes
+   ────────────────────────────────────────────────────────────── */
+
+/* 1. Prevent iOS auto-zoom on input focus by enforcing 16px minimum on mobile */
+@media screen and (max-width: 768px) {
+  input,
+  select,
+  textarea,
+  .input,
+  .select,
+  .textarea,
+  .input-sm,
+  .select.input-sm {
+    font-size: 16px !important;
+  }
+}
+
+/* 2. Remove tap delay and tap gray highlight on iOS */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a,
+input,
+select,
+textarea,
+[role='button'] {
+  touch-action: manipulation;
+}
+
+/* 3. Strict horizontal overflow boundary */
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+  position: relative;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* 4. Standalone Home Screen Shortcut specific styles */
+@media (display-mode: standalone) {
+  html {
+    overscroll-behavior-y: none;
+  }
+  .ios-safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .ios-safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
 

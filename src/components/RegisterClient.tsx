@@ -62,7 +62,13 @@ export function RegisterClient({ initialTier }: { initialTier: PlanTier }) {
   }
 
   return (
-    <div className="brand-scope min-h-dvh w-full overflow-x-hidden text-left">
+    <div
+      className="brand-scope min-h-dvh w-full overflow-x-hidden text-left"
+      style={{
+        paddingTop: 'env(safe-area-inset-top, 0px)',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+      }}
+    >
       <header className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-4 sm:px-6">
         <BrandLogo />
         <p className="text-[13px] text-muted sm:text-[13.5px]">

@@ -318,8 +318,14 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
 
       {/* ───────── Main column ───────── */}
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* Mobile top bar */}
-        <header className="no-print sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-line bg-[color-mix(in_oklab,var(--bg)_85%,transparent)] px-4 backdrop-blur-xl md:hidden">
+        {/* Mobile top bar with iOS notch/safe-area support */}
+        <header
+          className="no-print sticky top-0 z-30 flex items-center gap-2 border-b border-line bg-[color-mix(in_oklab,var(--bg)_85%,transparent)] px-4 backdrop-blur-xl md:hidden"
+          style={{
+            paddingTop: 'env(safe-area-inset-top, 0px)',
+            height: 'calc(3.5rem + env(safe-area-inset-top, 0px))',
+          }}
+        >
           <Link href="/app" className="flex min-w-0 flex-1 items-center gap-2.5">
             <ClinicMark name={user.clinic.name} size="sm" />
             <span className="truncate text-[15px] font-semibold">{user.clinic.name}</span>
@@ -342,16 +348,16 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
           </button>
         </header>
 
-        <main className="mx-auto w-full max-w-[1240px] flex-1 px-4 pb-[calc(96px+env(safe-area-inset-bottom))] pt-5 md:px-8 md:pb-12 md:pt-8">
+        <main className="mx-auto w-full max-w-[1240px] flex-1 px-4 pb-[calc(104px+env(safe-area-inset-bottom,0px))] pt-4 md:px-8 md:pb-12 md:pt-8">
           {children}
         </main>
       </div>
 
-      {/* ───────── Mobile bottom navigation ───────── */}
+      {/* ───────── Mobile bottom navigation with iOS home indicator support ───────── */}
       <nav
         aria-label="Main"
         className="no-print fixed inset-x-0 bottom-0 z-30 border-t border-line bg-[color-mix(in_oklab,var(--surface)_92%,transparent)] backdrop-blur-xl md:hidden"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom, 0px))' }}
       >
         <div className="mx-auto grid h-16 max-w-md grid-cols-5 items-center px-1">
           {bottomLeft.map((item) => (
@@ -759,7 +765,7 @@ function PaletteBody({
           type="search"
           aria-label="Search patients and pages"
           placeholder="Search patients by name, phone or ID…"
-          className="h-14 w-full bg-transparent pl-11 pr-4 text-[15px] outline-none placeholder:text-subtle"
+          className="h-14 w-full bg-transparent pl-11 pr-4 text-[16px] outline-none placeholder:text-subtle"
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);

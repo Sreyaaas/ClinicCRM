@@ -44,7 +44,13 @@ export function LoginClient({ demos }: { demos: DemoAccount[] }) {
   }
 
   return (
-    <div className="grid min-h-dvh lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
+    <div
+      className="grid min-h-dvh lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]"
+      style={{
+        paddingTop: 'env(safe-area-inset-top, 0px)',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+      }}
+    >
       {/* ───── Form ───── */}
       <main className="flex flex-col px-5 py-6 sm:px-10">
         <div className="flex items-center justify-between">
@@ -85,7 +91,7 @@ export function LoginClient({ demos }: { demos: DemoAccount[] }) {
                 autoCapitalize="none"
                 spellCheck={false}
                 required
-                className="input h-12 text-[15px]"
+                className="input h-12 text-[16px]"
                 placeholder="you@clinic.in"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -104,7 +110,7 @@ export function LoginClient({ demos }: { demos: DemoAccount[] }) {
                   type={show ? 'text' : 'password'}
                   autoComplete="current-password"
                   required
-                  className="input h-12 pr-12 text-[15px]"
+                  className="input h-12 pr-12 text-[16px]"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
